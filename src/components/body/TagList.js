@@ -44,12 +44,12 @@ const TagList = () => {
     <div className="grid grid-cols-12 items-center justify-center">
       <button
         onClick={scrollPrev}
-        className="text-sm text-gray-600 hover:text-gray-900 focus:outline-none"
+        className=" text-xl font-bold bg-slate-400/70 text-gray-600 rounded-full hover:bg-slate-400 focus:outline-none absolute py-2 px-4 "
       >
         &larr;
       </button>
       <div
-        className="col-span-10 flex gap-2 overflow-x-auto py-4"
+        className="col-span-12 flex gap-2 overflow-x-auto py-4 px-12"
         ref={containerRef}
       >
         {tags.map((tag, index) => (
@@ -58,7 +58,7 @@ const TagList = () => {
       </div>
       <button
         onClick={scrollNext}
-        className="col-span-1 text-sm text-gray-600 hover:text-gray-900 focus:outline-none"
+        className=" text-xl font-bold bg-slate-400/70 text-gray-600 rounded-full hover:bg-slate-400 focus:outline-none absolute right-0 px-4 py-2"
       >
         &rarr;
       </button>
