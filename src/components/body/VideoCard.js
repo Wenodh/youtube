@@ -1,62 +1,72 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const VideoCard = ({ info }) => {
-  console.log(info);
   const { snippet, statistics } = info;
-  const { channelTitle, title, thumbnails, publishedAt } = snippet;
+  const { channelTitle, title, thumbnails, publishedAt, channelId } = snippet;
+  const [channelLogo, setChannelLogo] = useState("");
   const [isHovered, setIsHovered] = useState(false);
-  let hoverTimeout;
+
+  useEffect(() => {
+    fetchChannelLogo();
+  }, [channelId]);
+
+  const fetchChannelLogo = async () => {
+    try {
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`);
+      const data = await response.json();
+      const logoUrl = data?.items[0]?.snippet?.thumbnails?.default?.url;
+      if (logoUrl) {
+        setChannelLogo(logoUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching channel logo:", error);
+    }
+  };
+
   const handleMouseEnter = () => {
-    hoverTimeout = setTimeout(() => {
-      setIsHovered(true);
-    }, 500); // 2000 milliseconds = 2 seconds
+    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
-    clearTimeout(hoverTimeout);
     setIsHovered(false);
   };
 
   const formatViewCount = (viewCount) => {
-    if (viewCount >= 1e6) return (viewCount / 1e6).toFixed(1) + "M";
-    if (viewCount >= 1e3) return (viewCount / 1e3).toFixed(1) + "K";
+    if (viewCount >= 1e6) return `${(viewCount / 1e6).toFixed(1)}M`;
+    if (viewCount >= 1e3) return `${(viewCount / 1e3).toFixed(1)}K`;
     return viewCount.toString();
   };
 
-  function formatDate(publishedAt) {
+  const formatDate = (publishedAt) => {
     const currentDate = new Date();
     const publishedDate = new Date(publishedAt);
     const timeDifference = currentDate - publishedDate;
-    const seconds = Math.floor(timeDifference / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const months = Math.floor(days / 30);
-    const years = Math.floor(months / 12);
+    const timeIntervals = [
+      { interval: 1000, label: "second" },
+      { interval: 60000, label: "minute" },
+      { interval: 3600000, label: "hour" },
+      { interval: 86400000, label: "day" },
+      { interval: 2592000000, label: "month" },
+      { interval: 31536000000, label: "year" },
+    ];
 
-    if (years > 0) return `${years} years ago`;
-    if (months > 0) return `${months} months ago`;
-    if (days > 0) return `${days} days ago`;
-    if (hours > 0) return `${hours} hours ago`;
-    if (minutes > 0) return `${minutes} minutes ago`;
+    for (let i = 0; i < timeIntervals.length; i++) {
+      const { interval, label } = timeIntervals[i];
+      const count = Math.floor(timeDifference / interval);
+      if (count !== 0) {
+        return `${count} ${label}${count !== 1 ? "s" : ""} ago`;
+      }
+    }
+
     return "Just now";
-  }
+  };
+
   return (
-    <div className="relative">
-      <img
-        className="aspect-video w-full rounded-lg"
-        src={thumbnails.medium.url}
-        alt="thumbnail"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => {
-          if (hoverTimeout) handleMouseLeave();
-        }}
-      />
+    <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <img className="aspect-video w-full rounded-lg" src={thumbnails.medium.url} alt="thumbnail" />
       {isHovered && (
         <iframe
-          // onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className="absolute left-0 top-0 aspect-video w-full rounded-lg"
+          className="absolute left-0 top-0 aspect-video w-full"
           src={`https://www.youtube.com/embed/${info.id}?autoplay=1`}
           title="YouTube video player"
           frameBorder="0"
@@ -64,16 +74,18 @@ const VideoCard = ({ info }) => {
           allowFullScreen
         ></iframe>
       )}
-      <ul>
-        <li>{title}</li>
-        <li>{channelTitle}</li>
-        <li>
-          <span>
-            {formatViewCount(statistics.viewCount)} views -{" "}
-            {formatDate(publishedAt)}{" "}
-          </span>
-        </li>
-      </ul>
+      <div className="flex gap-2 p-2">
+        {channelLogo && <img className="w-9 h-9 rounded-full object-contain mt-2" src={channelLogo} alt="channelLogo" />}
+        <ul>
+          <li className="text-lg font-medium text-ellipsis line-clamp-2">{title}</li>
+          <li className="text-sm text-gray-600 font-normal">{channelTitle}</li>
+          <li className="text-xs text-gray-600 font-normal">
+            <span>
+              {formatViewCount(statistics.viewCount)} views - {formatDate(publishedAt)}
+            </span>
+          </li>
+        </ul>
+      </div>
     </div>
   );
 };

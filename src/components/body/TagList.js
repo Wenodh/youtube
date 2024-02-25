@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 const TagButton = ({ text }) => {
   return (
-    <button className="font-base rounded-lg bg-gray-200 px-4 py-1 text-gray-800 shadow hover:bg-gray-400">
+    <button className="font-semibold rounded-lg bg-gray-300/60 px-4 py-1 text-gray-800 shadow hover:bg-gray-300/90">
       {text}
     </button>
   );
