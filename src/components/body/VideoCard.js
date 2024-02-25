@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const VideoCard = ({ info }) => {
   const { snippet, statistics } = info;
@@ -12,7 +13,9 @@ const VideoCard = ({ info }) => {
 
   const fetchChannelLogo = async () => {
     try {
-      const response = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`);
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`,
+      );
       const data = await response.json();
       const logoUrl = data?.items[0]?.snippet?.thumbnails?.default?.url;
       if (logoUrl) {
@@ -62,8 +65,16 @@ const VideoCard = ({ info }) => {
   };
 
   return (
-    <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <img className="aspect-video w-full rounded-lg" src={thumbnails.medium.url} alt="thumbnail" />
+    <div
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <img
+        className="aspect-video w-full rounded-lg"
+        src={thumbnails.medium.url}
+        alt="thumbnail"
+      />
       {isHovered && (
         <iframe
           className="absolute left-0 top-0 aspect-video w-full"
@@ -75,13 +86,24 @@ const VideoCard = ({ info }) => {
         ></iframe>
       )}
       <div className="flex gap-2 p-2">
-        {channelLogo && <img className="w-9 h-9 rounded-full object-contain mt-2" src={channelLogo} alt="channelLogo" />}
+        {channelLogo && (
+          <Link className="mt-2 min-w-9 max-w-9" to={"/channel?c=" + channelTitle}>
+            <img
+              className="rounded-full w-full object-contain"
+              src={channelLogo}
+              alt="channelLogo"
+            />
+          </Link>
+        )}
         <ul>
-          <li className="text-lg font-medium text-ellipsis line-clamp-2">{title}</li>
-          <li className="text-sm text-gray-600 font-normal">{channelTitle}</li>
-          <li className="text-xs text-gray-600 font-normal">
+          <li className="line-clamp-2 text-ellipsis text-lg font-medium">
+            {title}
+          </li>
+          <li className="text-sm font-normal text-gray-600">{channelTitle}</li>
+          <li className="text-xs font-normal text-gray-600">
             <span>
-              {formatViewCount(statistics.viewCount)} views - {formatDate(publishedAt)}
+              {formatViewCount(statistics.viewCount)} views -{" "}
+              {formatDate(publishedAt)}
             </span>
           </li>
         </ul>

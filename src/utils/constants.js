@@ -5,4 +5,7 @@ export const YOUTUBE_VIDEOS_API =
   process.env.REACT_APP_GOOGLE_API_KEY;
 
 export const YOUTUBE_SEARCH_API =
-  "https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=";
+  "https://suggestqueries.google.com/complete/search";
+
+// export const YOUTUBE_SEARCH_API = `https://serpapi.com/search.json?engine=google_autocomplete&search_query=`
+// export const YOUTUBE_SEARCH_API = `https://clients1.google.com/complete/search`
