@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { formatDate, formatViewCount } from "../../utils/helperFunctions";
 
 const VideoCard = ({ info }) => {
   const { snippet, statistics } = info;
@@ -34,36 +35,6 @@ const VideoCard = ({ info }) => {
     setIsHovered(false);
   };
 
-  const formatViewCount = (viewCount) => {
-    if (viewCount >= 1e6) return `${(viewCount / 1e6).toFixed(1)}M`;
-    if (viewCount >= 1e3) return `${(viewCount / 1e3).toFixed(1)}K`;
-    return viewCount.toString();
-  };
-
-  const formatDate = (publishedAt) => {
-    const currentDate = new Date();
-    const publishedDate = new Date(publishedAt);
-    const timeDifference = currentDate - publishedDate;
-    const timeIntervals = [
-      { interval: 1000, label: "second" },
-      { interval: 60000, label: "minute" },
-      { interval: 3600000, label: "hour" },
-      { interval: 86400000, label: "day" },
-      { interval: 2592000000, label: "month" },
-      { interval: 31536000000, label: "year" },
-    ];
-
-    for (let i = 0; i < timeIntervals.length; i++) {
-      const { interval, label } = timeIntervals[i];
-      const count = Math.floor(timeDifference / interval);
-      if (count !== 0) {
-        return `${count} ${label}${count !== 1 ? "s" : ""} ago`;
-      }
-    }
-
-    return "Just now";
-  };
-
   return (
     <div
       className="relative"
@@ -87,9 +58,12 @@ const VideoCard = ({ info }) => {
       )}
       <div className="flex gap-2 p-2">
         {channelLogo && (
-          <Link className="mt-2 min-w-9 max-w-9" to={"/channel?c=" + channelTitle}>
+          <Link
+            className="mt-2 min-w-9 max-w-9"
+            to={"/channel?c=" + channelTitle}
+          >
             <img
-              className="rounded-full w-full object-contain"
+              className="w-full rounded-full object-contain"
               src={channelLogo}
               alt="channelLogo"
             />
