@@ -107,7 +107,6 @@ const Head = () => {
                   key={suggestion}
                   className="block border-b px-2 py-1 shadow-sm hover:bg-gray-100"
                   onClick={() => {
-                    console.log("called", suggestion);
                     navigate(`/?q=${suggestion}`);
                     setShowSuggestions(false);
                   }}

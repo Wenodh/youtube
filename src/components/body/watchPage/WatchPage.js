@@ -21,7 +21,6 @@ const WatchPage = () => {
     const getVideoInfo = async () => {
       const data = await fetch(videoDetails);
       const json = await data.json();
-      // console.log(json.items);
       setVideoInfo(json.items);
     };
     getVideoInfo();
@@ -36,7 +35,6 @@ const WatchPage = () => {
     const getSubscriber = async () => {
       const data = await fetch(YOUTUBE_VIDEOS_API);
       const json = await data.json();
-      console.log(json);
       setSuggestionVideo(json.items);
     };
     getSubscriber();

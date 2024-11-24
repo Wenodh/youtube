@@ -5,7 +5,6 @@ const TagButton = ({ text, id }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const categoryId = searchParams.get("categoryId") || "0";
-  console.log(categoryId)
 
   const isSelected = categoryId === id;
 
