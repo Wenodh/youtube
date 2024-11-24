@@ -49,7 +49,7 @@ const VideoCard = ({ info }) => {
       {isHovered && (
         <iframe
           className="absolute left-0 top-0 aspect-video w-full"
-          src={`https://www.youtube.com/embed/${info.id}?autoplay=1`}
+          src={`https://www.youtube.com/embed/${info.id.videoId || info.id}?autoplay=1`}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -70,13 +70,13 @@ const VideoCard = ({ info }) => {
           </Link>
         )}
         <ul>
-          <li className="line-clamp-2 text-ellipsis text-lg font-medium">
+          <li className="line-clamp-2 text-ellipsis text-pretty text-base font-medium">
             {title}
           </li>
           <li className="text-sm font-normal text-gray-600">{channelTitle}</li>
           <li className="text-xs font-normal text-gray-600">
             <span>
-              {formatViewCount(statistics.viewCount)} views -{" "}
+              {statistics?.viewCount && formatViewCount(statistics?.viewCount)} views -{" "}
               {formatDate(publishedAt)}
             </span>
           </li>

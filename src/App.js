@@ -19,23 +19,41 @@ import UnderConstruction from "./components/UnderConstruction.js";
  *        VideoContainer
  *            VideoCard
  */
+// const head = <Head />;
 const appRouter = createBrowserRouter([
   {
     path: "/",
-    element: <Body />,
-    errorElement:<UnderConstruction/>,
+    element: (
+      <>
+        <Head />
+        <Body />
+      </>
+    ),
+    errorElement: <UnderConstruction />,
     children: [
       {
         path: "/",
-        element: <MainContainer />,
+        element: (
+          <>
+            <MainContainer />
+          </>
+        ),
       },
       {
         path: "watch",
-        element: <WatchPage />,
+        element: (
+          <>
+            <WatchPage />
+          </>
+        ),
       },
       {
         path: "channel",
-        element: <ChannelPage />,
+        element: (
+          <>
+            <ChannelPage />
+          </>
+        ),
       },
       {
         path: "underconstruction",
@@ -47,10 +65,7 @@ const appRouter = createBrowserRouter([
 function App() {
   return (
     <Provider store={store}>
-      <div className="">
-        <Head />
-        <RouterProvider router={appRouter} />
-      </div>
+      <RouterProvider router={appRouter} />
     </Provider>
   );
 }
