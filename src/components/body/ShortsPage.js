@@ -9,8 +9,8 @@ const ShortItem = ({ short, activeVideoId }) => {
   const isActive = activeVideoId === short.id.videoId;
 
   return (
-    <div className="h-full w-full flex items-center justify-center snap-center flex-shrink-0 p-2 md:p-4">
-      <div className="relative h-[95%] aspect-[9/16] overflow-hidden rounded-2xl bg-black shadow-2xl" data-video-id={short.id.videoId}>
+    <div className="h-full w-full flex items-center justify-center snap-center flex-shrink-0 py-4">
+      <div className="relative h-full max-h-[850px] aspect-[9/16] overflow-hidden rounded-2xl bg-black shadow-2xl" data-video-id={short.id.videoId}>
         {/* Video Player - Only autoplay if active */}
         <iframe
           className="h-full w-full"
@@ -127,7 +127,7 @@ const ShortsPage = () => {
   return (
     <div
       ref={containerRef}
-      className="h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] w-full overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50"
+      className="h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50"
     >
       {shorts?.map((short) => (
         <ShortItem

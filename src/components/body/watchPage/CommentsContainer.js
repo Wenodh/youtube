@@ -1,148 +1,91 @@
-import React from "react";
-import { FaUser } from "react-icons/fa";
-
-const commentsData = [
-  {
-    id: "sdvc",
-    name: "Wenodh",
-    text: "Hi Nice Video",
-    replies: [
-      {
-        id: "jsdvcjd",
-        name: "Wenodh",
-        text: "sdgfhsavcdv dsacvbjdvc",
-        replies: [
-          {
-            id: "hdsvchd",
-            name: "User123",
-            text: "This is a great video!",
-            replies: []
-          },
-          {
-            id: "fdshfdsk",
-            name: "User456",
-            text: "I learned a lot from this, thank you!",
-            replies: [
-              {
-                id: "gfhfdhdf",
-                name: "Wenodh",
-                text: "You're welcome! Feel free to ask any questions.",
-                replies: []
-              },
-              {
-                id: "kjdfgkj",
-                name: "User789",
-                text: "Can you make a video on topic ABC?",
-                replies: []
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "hdfvdf",
-    name: "User789",
-    text: "Awesome content!",
-    replies: [
-      {
-        id: "dfhdfhd",
-        name: "Wenodh",
-        text: "Thank you for your feedback!",
-        replies: [
-          {
-            id: "sjdksdj",
-            name: "User101112",
-            text: "I would love to see more videos like this.",
-            replies: []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "fdshfdsh",
-    name: "Wenodh",
-    text: "Thank you for your feedback!",
-    replies: [
-      {
-        id: "dfshfds",
-        name: "User101112",
-        text: "Can you make a video on topic XYZ?",
-        replies: [
-          {
-            id: "gdfhgdh",
-            name: "Wenodh",
-            text: "Sure! I'll consider making a video on that topic.",
-            replies: [
-              {
-                id: "kdfgkdf",
-                name: "User131415",
-                text: "Looking forward to it!",
-                replies: []
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: "fdshfhds",
-        name: "User161718",
-        text: "I shared this video with my friends, they loved it!",
-        replies: []
-      }
-    ]
-  },
-  {
-    id: "kdfhdfh",
-    name: "User192021",
-    text: "Could you explain the second part in more detail?",
-    replies: []
-  }
-];
-
+import React, { useEffect, useState, useCallback } from "react";
+import { YOUTUBE_COMMENT_THREADS_API } from "../../../utils/constants";
+import { formatDistanceToNow } from "date-fns";
+import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
 
 const Comment = ({ data }) => {
-  const { name, text, replies } = data;
+  const snippet = data?.snippet?.topLevelComment?.snippet || data?.snippet;
+  const {
+    authorDisplayName,
+    authorProfileImageUrl,
+    textDisplay,
+    likeCount,
+    publishedAt,
+  } = snippet;
+
+  const replies = data?.replies?.comments;
+
   return (
-    <div className="p-2 ">
-      <div className="flex bg-slate-100 p-2 rounded-md">
-        <div className="mt-2 flex h-9 w-9 items-center justify-center rounded-full border border-black">
-          <FaUser />
+    <div className="py-3">
+      <div className="flex gap-3">
+        <img
+          className="h-10 w-10 rounded-full object-cover"
+          src={authorProfileImageUrl}
+          alt={authorDisplayName}
+        />
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-gray-900">
+              {authorDisplayName}
+            </span>
+            <span className="text-xs text-gray-500">
+              {formatDistanceToNow(new Date(publishedAt))} ago
+            </span>
+          </div>
+          <p
+            className="text-sm text-gray-800"
+            dangerouslySetInnerHTML={{ __html: textDisplay }}
+          />
+          <div className="mt-1 flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <FiThumbsUp className="cursor-pointer text-sm" />
+              <span className="text-xs text-gray-600">{likeCount > 0 && likeCount}</span>
+            </div>
+            <FiThumbsDown className="cursor-pointer text-sm" />
+            <button className="text-xs font-bold hover:bg-gray-100 px-2 py-1 rounded-full">
+              Reply
+            </button>
+          </div>
         </div>
-        <ul className="px-3">
-          <li className="font-semibold">{name}</li>
-          <li className="font-normal text-sm">{text}</li>
-          <li className="flex gap-2">
-            <button className="">👍</button>
-            <button className="">👎</button>
-            <button className="">Reply</button>
-          </li>
-        </ul>
       </div>
-      {replies.map((reply) => (
-        <div key={reply.id} className="ml-2 border-l pl-2 ">
-          <Comment data={reply} />
+      {replies && (
+        <div className="ml-12 mt-2">
+          {replies.map((reply) => (
+            <Comment key={reply.id} data={reply} />
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };
-const CommentsList = ({ comments }) => {
+
+const CommentsContainer = ({ videoId }) => {
+  const [comments, setComments] = useState([]);
+
+  const getComments = useCallback(async () => {
+    try {
+      const response = await fetch(YOUTUBE_COMMENT_THREADS_API + videoId);
+      const data = await response.json();
+      setComments(data.items || []);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  }, [videoId]);
+
+  useEffect(() => {
+    if (videoId) {
+      getComments();
+    }
+  }, [videoId, getComments]);
+
   return (
-    <div>
-      {comments?.map((comment) => (
-        <Comment key={comment.id} data={comment} />
-      ))}
-    </div>
-  );
-};
-const CommentsContainer = () => {
-  return (
-    <div className="m-5 p-2 ">
-      <h1 className="text-2xl font-bold">Comments:</h1>
-      <CommentsList comments={commentsData} />
+    <div className="mt-6">
+      <h2 className="text-xl font-bold mb-4">{comments.length} Comments</h2>
+      <div className="flex flex-col">
+        {comments.map((comment) => (
+          <Comment key={comment.id} data={comment} />
+        ))}
+      </div>
     </div>
   );
 };

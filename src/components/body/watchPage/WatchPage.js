@@ -11,6 +11,31 @@ import { GoDownload } from "react-icons/go";
 import { BsThreeDots } from "react-icons/bs";
 import { FaUserTie } from "react-icons/fa6";
 
+const VideoDescription = ({ video }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const description = video?.snippet?.description;
+
+  return (
+    <div
+      className={`m-2 rounded-xl bg-gray-100 p-3 text-sm hover:bg-gray-200 cursor-pointer ${
+        !isExpanded ? "max-h-24 overflow-hidden" : ""
+      }`}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
+      <div className="flex gap-2 font-bold mb-1">
+        <span>{formatViewCount(video?.statistics?.viewCount)} views</span>
+        <span>{formatDate(video?.snippet?.publishedAt)}</span>
+      </div>
+      <p className="whitespace-pre-wrap">
+        {isExpanded ? description : description?.slice(0, 200) + "..."}
+      </p>
+      <button className="font-bold mt-2">
+        {isExpanded ? "Show less" : "Show more"}
+      </button>
+    </div>
+  );
+};
+
 const WatchPage = () => {
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
@@ -95,20 +120,10 @@ const WatchPage = () => {
                 </div>
               </div>
               {/* Video Details Section */}
-              <div className="m-2 rounded-lg bg-gray-100 p-2 shadow-sm">
-                <p className="font-bold">
-                  {formatViewCount(video?.statistics?.viewCount)} Views 😎{" "}
-                  {formatDate(video?.snippet?.publishedAt)}
-                </p>
-                <p>{video?.snippet?.description}</p>
-              </div>
+              <VideoDescription video={video} />
+
               {/* Comment Section */}
-              <div className="mt-5">
-                <h1 className="m-2  text-2xl font-bold">
-                  {formatViewCount(video?.statistics?.commentCount)} Comments.
-                </h1>
-              </div>
-              <CommentsContainer />
+              <CommentsContainer videoId={searchParams.get("v")} />
             </>
           );
         })}

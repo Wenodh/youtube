@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { CiMenuBurger } from "react-icons/ci";
-import { FaUser } from "react-icons/fa";
 import { IoSearchOutline, IoArrowBackOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleMenu } from "../utils/appSlice";
+import { toggleMenu, setUser, logout } from "../utils/appSlice";
 import { YOUTUBE_SEARCH_API } from "../utils/constants";
 import axios from "axios";
 import jsonpAdapter from "axios-jsonp";
@@ -18,6 +17,46 @@ const Head = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
   const searchCache = useSelector((store) => store.search);
+  const user = useSelector((store) => store.app.user);
+
+  const parseJwt = useCallback((token) => {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join(""),
+    );
+    return JSON.parse(jsonPayload);
+  }, []);
+
+  const handleLoginCallback = useCallback(
+    (response) => {
+      const userObject = parseJwt(response.credential);
+      dispatch(setUser(userObject));
+    },
+    [dispatch, parseJwt],
+  );
+
+  useEffect(() => {
+    /* global google */
+    if (window.google) {
+      google.accounts.id.initialize({
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        callback: handleLoginCallback,
+      });
+
+      google.accounts.id.renderButton(document.getElementById("signInDiv"), {
+        theme: "outline",
+        size: "medium",
+        type: "icon",
+        shape: "circle",
+      });
+    }
+  }, [user, handleLoginCallback]);
 
   const getSearchSuggestions = useCallback(async () => {
     try {
@@ -179,7 +218,19 @@ const Head = () => {
           className="cursor-pointer text-2xl md:hidden"
           onClick={() => setIsMobileSearchVisible(true)}
         />
-        <FaUser className="cursor-pointer text-xl" />
+        {user ? (
+          <div className="flex items-center gap-2">
+            <img
+              className="h-8 w-8 rounded-full cursor-pointer"
+              src={user.picture}
+              alt="user"
+              onClick={() => dispatch(logout())}
+              title="Click to logout"
+            />
+          </div>
+        ) : (
+          <div id="signInDiv"></div>
+        )}
       </div>
     </div>
   );

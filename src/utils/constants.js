@@ -13,6 +13,8 @@ export const YOUTUBE_SEARCH_API = "https://suggestqueries.google.com/complete/se
 
 export const YOUTUBE_VIDEO_BY_ID = `${BASE_YOUTUBE_API}/videos?part=snippet,contentDetails,statistics&key=${API_KEY}&id=`;
 
+export const YOUTUBE_COMMENT_THREADS_API = `${BASE_YOUTUBE_API}/commentThreads?part=snippet,replies&maxResults=50&key=${API_KEY}&videoId=`;
+
 // export const YOUTUBE_SEARCH_API = `https://serpapi.com/search.json?engine=google_autocomplete&search_query=`
 // export const YOUTUBE_SEARCH_API = `https://clients1.google.com/complete/search`
 
