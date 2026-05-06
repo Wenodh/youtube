@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { YOUTUBE_SHORTS_API } from "../../utils/constants";
 import { useDispatch } from "react-redux";
 import { closeMenu } from "../../utils/appSlice";
+import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2, FiMoreVertical } from "react-icons/fi";
+import { FaUserTie } from "react-icons/fa6";
 
 const ShortsPage = () => {
   const [shorts, setShorts] = useState([]);
@@ -23,12 +25,13 @@ const ShortsPage = () => {
   }, [dispatch, getShorts]);
 
   return (
-    <div className="flex w-full flex-col items-center gap-4 overflow-y-auto p-4 pb-24 md:pb-4">
+    <div className="h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] w-full flex flex-col items-center overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50">
       {shorts?.map((short) => (
         <div
           key={short.id.videoId}
-          className="relative aspect-[9/16] w-full max-w-[400px] snap-start overflow-hidden rounded-2xl bg-black shadow-lg"
+          className="relative h-full w-full max-w-[400px] snap-center flex-shrink-0 md:my-4 overflow-hidden md:rounded-2xl bg-black shadow-2xl"
         >
+          {/* Video Player */}
           <iframe
             className="h-full w-full"
             src={`https://www.youtube.com/embed/${short.id.videoId}?autoplay=1&mute=1&loop=1&playlist=${short.id.videoId}&controls=0&modestbranding=1&rel=0`}
@@ -37,13 +40,54 @@ const ShortsPage = () => {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           ></iframe>
-          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4 text-white">
-            <h3 className="line-clamp-2 text-sm font-bold">
+
+          {/* Action Buttons Overlay */}
+          <div className="absolute right-2 bottom-20 flex flex-col items-center gap-6 text-white z-10">
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
+                <FiThumbsUp className="text-2xl" />
+              </div>
+              <span className="text-xs mt-1">Like</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
+                <FiThumbsDown className="text-2xl" />
+              </div>
+              <span className="text-xs mt-1">Dislike</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
+                <FiMessageSquare className="text-2xl" />
+              </div>
+              <span className="text-xs mt-1">1.2K</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
+                <FiShare2 className="text-2xl" />
+              </div>
+              <span className="text-xs mt-1">Share</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
+                <FiMoreVertical className="text-2xl" />
+              </div>
+            </div>
+          </div>
+
+          {/* Video Info Overlay */}
+          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-white">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="bg-gray-400 p-1 rounded-full">
+                <FaUserTie className="text-xl" />
+              </div>
+              <span className="font-bold text-sm">@{short.snippet.channelTitle.replace(/\s+/g, '').toLowerCase()}</span>
+              <button className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold ml-2">
+                Subscribe
+              </button>
+            </div>
+            <h3 className="line-clamp-2 text-sm leading-snug pr-12">
               {short.snippet.title}
             </h3>
-            <p className="text-xs text-gray-300">
-              {short.snippet.channelTitle}
-            </p>
           </div>
         </div>
       ))}
