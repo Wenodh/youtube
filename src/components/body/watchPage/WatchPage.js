@@ -24,10 +24,10 @@ const WatchPage = () => {
       setVideoInfo(json.items);
     };
     getVideoInfo();
-  }, []);
+  }, [videoDetails]);
   useEffect(() => {
     dispatch(closeMenu());
-  }, []);
+  }, [dispatch]);
 
   const [suggestionVideo, setSuggestionVideo] = useState([]);
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import { FaUser } from "react-icons/fa";
 import { IoSearchOutline, IoArrowBackOutline } from "react-icons/io5";
@@ -8,7 +8,7 @@ import { YOUTUBE_SEARCH_API } from "../utils/constants";
 import axios from "axios";
 import jsonpAdapter from "axios-jsonp";
 import { cacheResults } from "../utils/searchSlice";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Head = () => {
   const dispatch = useDispatch();
@@ -19,21 +19,7 @@ const Head = () => {
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
   const searchCache = useSelector((store) => store.search);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchCache[searchQuery]) {
-        setSuggestions(searchCache[searchQuery]);
-      } else {
-        getSearchSuggestions();
-      }
-    }, 200);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [searchQuery, searchCache]);
-
-  const getSearchSuggestions = async () => {
+  const getSearchSuggestions = useCallback(async () => {
     try {
       const res = await axios({
         url: YOUTUBE_SEARCH_API,
@@ -52,7 +38,21 @@ const Head = () => {
     } catch (err) {
       console.log(err);
     }
-  };
+  }, [searchQuery, dispatch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchCache[searchQuery]) {
+        setSuggestions(searchCache[searchQuery]);
+      } else {
+        getSearchSuggestions();
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery, searchCache, getSearchSuggestions]);
 
   const toggleMenuHandler = () => {
     dispatch(toggleMenu());

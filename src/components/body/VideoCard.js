@@ -9,10 +9,7 @@ const VideoCard = ({ info }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    fetchChannelLogo();
-  }, [channelId]);
-
-  const fetchChannelLogo = async () => {
+    const fetchChannelLogo = async () => {
     try {
       const response = await fetch(
         `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`,
@@ -26,6 +23,8 @@ const VideoCard = ({ info }) => {
       console.error("Error fetching channel logo:", error);
     }
   };
+    fetchChannelLogo();
+  }, [channelId]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);

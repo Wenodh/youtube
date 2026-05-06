@@ -1,14 +1,12 @@
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useSearchParams } from "react-router-dom";
 import { closeMenu } from "../../../utils/appSlice";
 
 const ChannelPage = () => {
-  const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(closeMenu());
-  }, []);
+  }, [dispatch]);
   return (
     <div className="grid w-full grid-cols-12 p-4">
       <div className="col-span-full md:col-span-12">

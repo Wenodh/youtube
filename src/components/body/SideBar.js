@@ -25,9 +25,9 @@ import {
   IoNewspaperOutline,
 } from "react-icons/io5";
 import { BiMoviePlay, BiHelpCircle } from "react-icons/bi";
-import { FaShopify, FaUser, FaCircleUser } from "react-icons/fa6";
+import { FaShopify } from "react-icons/fa6";
 import { PiStudentFill } from "react-icons/pi";
-import { FcStart, FcFeedback, FcManager, FcPortraitMode } from "react-icons/fc";
+import { FcStart, FcFeedback } from "react-icons/fc";
 import { ImYoutube2 } from "react-icons/im";
 import { SiYoutubemusic } from "react-icons/si";
 import { VscReport } from "react-icons/vsc";
