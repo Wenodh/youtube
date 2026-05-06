@@ -7,6 +7,8 @@ export const YOUTUBE_VIDEOS_API = `${BASE_YOUTUBE_API}/videos?part=snippet,conte
 
 export const YOUTUBE_VIDEOS_SEARCH_API = `${BASE_YOUTUBE_API}/search?part=snippet,statistics&maxResults=20&type=video&key=${API_KEY}&q=`;
 
+export const YOUTUBE_SHORTS_API = `${BASE_YOUTUBE_API}/search?part=snippet&maxResults=20&type=video&videoDuration=short&key=${API_KEY}&q=Shorts`;
+
 export const YOUTUBE_SEARCH_API = "https://suggestqueries.google.com/complete/search";
 
 export const YOUTUBE_VIDEO_BY_ID = `${BASE_YOUTUBE_API}/videos?part=snippet,contentDetails,statistics&key=${API_KEY}&id=`;

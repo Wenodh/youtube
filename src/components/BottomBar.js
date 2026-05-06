@@ -25,7 +25,7 @@ const BottomBar = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t bg-white py-2 md:hidden">
       {navItem("/", AiOutlineHome, "Home")}
-      {navItem("/underconstruction", BsPlayBtn, "Shorts")}
+      {navItem("/shorts", BsPlayBtn, "Shorts")}
       {navItem("/underconstruction", MdOutlineSubscriptions, "Subscriptions")}
       {navItem("/underconstruction", MdOutlineVideoLibrary, "You")}
     </div>

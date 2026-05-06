@@ -51,7 +51,7 @@ const SideBar = () => {
         <div className="absolute z-20 h-full min-h-screen w-48 overflow-y-auto bg-white p-5 shadow-lg md:static">
           <ul>
             {menuItem("/", AiOutlineHome, "Home")}
-            {menuItem("/underconstruction", BsPlayBtn, "Shorts")}
+            {menuItem("/shorts", BsPlayBtn, "Shorts")}
             {menuItem("/underconstruction", MdOutlineSubscriptions, "Subscriptions")}
           </ul>
           <hr className="mt-2" />

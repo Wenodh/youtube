@@ -8,6 +8,7 @@ import MainContainer from "./components/body/MainContainer";
 import WatchPage from "./components/body/watchPage/WatchPage.js";
 import ChannelPage from "./components/body/channelPage/ChannelPage.js";
 import UnderConstruction from "./components/UnderConstruction.js";
+import ShortsPage from "./components/body/ShortsPage.js";
 /**
  *
  * Head
@@ -38,6 +39,10 @@ const appRouter = createBrowserRouter([
             <MainContainer />
           </>
         ),
+      },
+      {
+        path: "shorts",
+        element: <ShortsPage />,
       },
       {
         path: "watch",
