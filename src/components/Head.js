@@ -58,13 +58,6 @@ const Head = () => {
     dispatch(toggleMenu());
   };
 
-  const handleBlur = (e) => {
-    // Check if the blur event is related to the suggestion list
-    // if (!e.currentTarget.contains(e.relatedTarget)) {
-    //   setShowSuggestions(false);
-    // }
-  };
-
   if (isMobileSearchVisible) {
     return (
       <div className="flex items-center gap-2 p-4 shadow-xl md:hidden">
@@ -81,7 +74,7 @@ const Head = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
-            onBlur={handleBlur}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 navigate(`/?q=${searchQuery}`);
