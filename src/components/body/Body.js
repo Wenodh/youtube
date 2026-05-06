@@ -6,9 +6,11 @@ import BottomBar from "../BottomBar";
 const Body = () => {
   return (
     <div className="flex flex-col md:flex-row">
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         <SideBar />
-        <Outlet />
+        <main className="flex-1 overflow-x-hidden">
+          <Outlet />
+        </main>
       </div>
       <BottomBar />
     </div>

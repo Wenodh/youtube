@@ -57,10 +57,10 @@ const VideoCard = ({ info }) => {
         ></iframe>
       )}
       </div>
-      <div className="flex gap-3 p-1">
+      <div className="flex gap-2 p-1 sm:gap-3">
         {channelLogo && (
           <Link
-            className="mt-1 h-9 w-9 shrink-0"
+            className="mt-1 h-7 w-7 shrink-0 sm:h-9 sm:w-9"
             to={"/channel?c=" + channelTitle}
           >
             <img
@@ -70,13 +70,13 @@ const VideoCard = ({ info }) => {
             />
           </Link>
         )}
-        <div className="flex flex-col gap-1">
-          <h3 className="line-clamp-2 text-ellipsis text-[15px] font-semibold leading-snug text-[#0f0f0f]">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="line-clamp-2 text-ellipsis text-[13px] font-semibold leading-snug text-[#0f0f0f] sm:text-[15px]">
             {title}
           </h3>
-          <div className="text-[13px] text-[#606060]">
-            <p className="hover:text-black">{channelTitle}</p>
-            <p className="text-xs">
+          <div className="text-[11px] text-[#606060] sm:text-[13px]">
+            <p className="hover:text-black line-clamp-1">{channelTitle}</p>
+            <p className="text-[10px] sm:text-xs">
               {statistics?.viewCount && (
                 <span>{formatViewCount(statistics?.viewCount)} views • </span>
               )}

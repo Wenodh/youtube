@@ -373,7 +373,7 @@ const TagList = () => {
   };
 
   return (
-    <div className="relative group mx-4 md:mx-6">
+    <div className="relative group mx-2 md:mx-6 overflow-hidden">
       {showLeft && (
         <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-white via-white to-transparent pr-8">
           <button
