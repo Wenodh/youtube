@@ -14,7 +14,7 @@ const ShortItem = ({ short, activeVideoId }) => {
         {/* Video Player - Only autoplay if active */}
         <iframe
           className="h-full w-full"
-          src={`https://www.youtube.com/embed/${short.id.videoId}?autoplay=${isActive ? 1 : 0}&loop=1&playlist=${short.id.videoId}&controls=0&modestbranding=1&rel=0`}
+          src={`https://www.youtube.com/embed/${short.id.videoId}?autoplay=${isActive ? 1 : 0}&mute=1&loop=1&playlist=${short.id.videoId}&controls=0&modestbranding=1&rel=0`}
           title="YouTube Shorts player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

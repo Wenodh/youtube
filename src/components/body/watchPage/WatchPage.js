@@ -39,17 +39,18 @@ const VideoDescription = ({ video }) => {
 const WatchPage = () => {
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
-  const videoDetails = YOUTUBE_VIDEO_BY_ID + searchParams.get("v");
   const [videoInfo, setVideoInfo] = useState([]);
 
   useEffect(() => {
     const getVideoInfo = async () => {
-      const data = await fetch(videoDetails);
+      const videoId = searchParams.get("v");
+      if (!videoId) return;
+      const data = await fetch(YOUTUBE_VIDEO_BY_ID + videoId);
       const json = await data.json();
-      setVideoInfo(json.items);
+      setVideoInfo(json?.items || []);
     };
     getVideoInfo();
-  }, [videoDetails]);
+  }, [searchParams]);
   useEffect(() => {
     dispatch(closeMenu());
   }, [dispatch]);

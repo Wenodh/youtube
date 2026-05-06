@@ -123,12 +123,12 @@ const Head = () => {
             }}
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-14 z-10 max-h-[80vh] w-full overflow-y-auto rounded-2xl border border-white/20 bg-white/90 p-2 shadow-2xl backdrop-blur-xl">
+            <div className="absolute top-14 z-10 max-h-[50vh] w-full overflow-y-auto rounded-2xl border border-white/20 bg-white/90 p-1 shadow-2xl backdrop-blur-xl">
               <ul>
                 {suggestions.map((suggestion) => (
                   <li
                     key={suggestion}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-100/80 active:bg-gray-200/80"
+                    className="flex items-center gap-4 rounded-xl px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-100/80 active:bg-gray-200/80"
                     onMouseDown={(e) => {
                       // Using onMouseDown to trigger before onBlur
                       e.preventDefault();
@@ -138,8 +138,8 @@ const Head = () => {
                       setIsMobileSearchVisible(false);
                     }}
                   >
-                    <IoSearchOutline className="shrink-0 text-gray-400" />
-                    <span className="line-clamp-1">{suggestion}</span>
+                    <IoSearchOutline className="shrink-0 text-lg text-gray-500" />
+                    <span className="line-clamp-1 text-[15px]">{suggestion}</span>
                   </li>
                 ))}
               </ul>
@@ -199,20 +199,20 @@ const Head = () => {
           </button>
         </div>
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-14 z-10 max-h-[70vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/20 bg-white/90 p-2 shadow-2xl backdrop-blur-xl">
+          <div className="absolute top-14 z-10 max-h-[60vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/20 bg-white/95 p-1 shadow-2xl backdrop-blur-xl">
             <ul>
               {suggestions.map((suggestion) => (
                 <li
                   key={suggestion}
-                  className="flex items-center gap-3 rounded-xl px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-100/80 cursor-pointer"
+                  className="flex items-center gap-4 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-100/80 cursor-pointer"
                   onClick={() => {
                     setSearchQuery(suggestion);
                     navigate(`/?q=${suggestion}`);
                     setShowSuggestions(false);
                   }}
                 >
-                  <IoSearchOutline className="shrink-0 text-gray-400" />
-                  <span className="line-clamp-1">{suggestion}</span>
+                  <IoSearchOutline className="shrink-0 text-lg text-gray-500" />
+                  <span className="line-clamp-1 text-[15px]">{suggestion}</span>
                 </li>
               ))}
             </ul>

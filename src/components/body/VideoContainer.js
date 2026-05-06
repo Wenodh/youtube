@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   YOUTUBE_VIDEOS_API,
@@ -42,33 +42,50 @@ const VideoContainer = () => {
     [query, categoryId, nextPageToken],
   );
 
+  const observer = useRef();
+  const lastVideoElementRef = useCallback(
+    (node) => {
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && nextPageToken) {
+          getVideos(false);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [nextPageToken, getVideos],
+  );
+
   useEffect(() => {
     setVideos([]);
     setNextPageToken("");
     getVideos(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, categoryId]); // Removed getVideos from here as it would cause infinite loop because it depends on nextPageToken
+  }, [query, categoryId]);
 
   return (
     <>
       <div className="grid grid-cols-2 gap-2 p-2 sm:gap-3 sm:p-4 lg:grid-cols-3 xl:grid-cols-4">
-        {videos?.map((video) => (
-          <Link
-            key={video.id?.videoId || video.id}
-            to={"/watch?v=" + (video?.id?.videoId || video.id)}
-          >
-            <VideoCard id={video.id?.videoId || video.id} info={video} />
-          </Link>
-        ))}
+        {videos?.map((video, index) => {
+          const videoId = video.id?.videoId || video.id;
+          const isLastElement = videos.length === index + 1;
+
+          return (
+            <Link
+              key={videoId}
+              to={"/watch?v=" + videoId}
+              ref={isLastElement ? lastVideoElementRef : null}
+            >
+              <VideoCard id={videoId} info={video} />
+            </Link>
+          );
+        })}
       </div>
-      <div className="flex justify-center">
-        <button
-          className="mx-auto my-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-700"
-          onClick={() => getVideos(false)}
-        >
-          Load more
-        </button>
-      </div>
+      {nextPageToken && (
+        <div className="flex justify-center p-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+        </div>
+      )}
     </>
   );
 };
