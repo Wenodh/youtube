@@ -150,24 +150,29 @@ const Head = () => {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 shadow-sm md:shadow-xl">
-      <div className="flex items-center gap-2">
+    <div className="sticky top-0 z-40 flex items-center justify-between bg-white/80 p-3 backdrop-blur-md md:px-6">
+      <div className="flex items-center gap-4">
         <CiMenuBurger
           onClick={toggleMenuHandler}
-          className="hidden cursor-pointer text-xl md:block"
+          className="hidden cursor-pointer text-xl transition-colors hover:text-red-600 md:block"
         />
-        <img
-          className="h-5 cursor-pointer md:mx-2 md:h-6"
-          alt="youtube-logo"
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/YouTube_Logo_2017.svg/2560px-YouTube_Logo_2017.svg.png"
+        <div
+          className="flex cursor-pointer items-center gap-1"
           onClick={() => navigate(`/`)}
-        />
+        >
+          <img
+            className="h-5 md:h-6"
+            alt="logo"
+            src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png"
+          />
+          <span className="text-xl font-bold tracking-tighter hidden md:block">YouTube</span>
+        </div>
       </div>
 
       <div className="relative hidden w-1/2 md:flex md:justify-center">
-        <div className="flex w-full max-w-2xl">
+        <div className="flex w-full max-w-xl shadow-sm transition-shadow focus-within:shadow-md">
           <input
-            className="relative w-full rounded-l-full border border-gray-400 p-2 pl-6 outline-none"
+            className="relative w-full rounded-l-full border border-gray-200 bg-gray-50/50 p-2 pl-6 outline-none focus:border-blue-500 focus:bg-white"
             type="text"
             placeholder="Search"
             value={searchQuery}
@@ -182,14 +187,14 @@ const Head = () => {
             }}
           />
           <button
-            className="rounded-r-full border border-gray-400 bg-gray-100 p-2 px-5 hover:bg-gray-200"
+            className="rounded-r-full border border-l-0 border-gray-200 bg-gray-50 p-2 px-6 transition-colors hover:bg-gray-100"
             onClick={() => {
               if (!searchQuery) return;
               navigate(`/?q=${searchQuery}`);
               setShowSuggestions(false);
             }}
           >
-            🔍
+            <IoSearchOutline className="text-lg" />
           </button>
         </div>
         {showSuggestions && suggestions.length > 0 && (

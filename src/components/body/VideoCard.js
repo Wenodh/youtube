@@ -36,26 +36,28 @@ const VideoCard = ({ info }) => {
 
   return (
     <div
-      className="relative"
+      className="group relative flex flex-col gap-2 transition-all duration-300"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      <div className="relative overflow-hidden rounded-xl">
       <img
-        className="aspect-video w-full rounded-lg"
+        className="aspect-video w-full transition-transform duration-500 group-hover:scale-105"
         src={thumbnails.medium.url}
         alt="thumbnail"
       />
       {isHovered && (
         <iframe
-          className="absolute left-0 top-0 aspect-video w-full"
-          src={`https://www.youtube.com/embed/${info.id.videoId || info.id}?autoplay=1`}
+          className="absolute left-0 top-0 z-10 aspect-video w-full rounded-xl"
+          src={`https://www.youtube.com/embed/${info.id.videoId || info.id}?autoplay=1&mute=1`}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         ></iframe>
       )}
-      <div className="flex gap-3 p-2">
+      </div>
+      <div className="flex gap-3 p-1">
         {channelLogo && (
           <Link
             className="mt-1 h-9 w-9 shrink-0"
@@ -68,11 +70,11 @@ const VideoCard = ({ info }) => {
             />
           </Link>
         )}
-        <div className="flex flex-col">
-          <h3 className="line-clamp-2 text-ellipsis text-base font-bold leading-snug">
+        <div className="flex flex-col gap-1">
+          <h3 className="line-clamp-2 text-ellipsis text-[15px] font-semibold leading-snug text-[#0f0f0f]">
             {title}
           </h3>
-          <div className="mt-1 text-sm text-gray-600">
+          <div className="text-[13px] text-[#606060]">
             <p className="hover:text-black">{channelTitle}</p>
             <p className="text-xs">
               {statistics?.viewCount && (
