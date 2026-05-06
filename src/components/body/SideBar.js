@@ -46,9 +46,9 @@ const SideBar = () => {
   );
 
   return (
-    <div ref={animationParent} className={isMenuOpen ? "w-64" : ""}>
+    <div ref={animationParent} className={isMenuOpen ? "md:w-64" : ""}>
       {isMenuOpen && (
-        <div className="w-48 p-5 shadow-lg min-h-screen h-full overflow-y-auto absolute">
+        <div className="absolute z-20 h-full min-h-screen w-48 overflow-y-auto bg-white p-5 shadow-lg md:static">
           <ul>
             {menuItem("/", AiOutlineHome, "Home")}
             {menuItem("/underconstruction", BsPlayBtn, "Shorts")}

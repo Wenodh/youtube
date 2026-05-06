@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import { FaUser } from "react-icons/fa";
+import { IoSearchOutline, IoArrowBackOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleMenu } from "../utils/appSlice";
 import { YOUTUBE_SEARCH_API } from "../utils/constants";
@@ -15,6 +16,7 @@ const Head = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
   const searchCache = useSelector((store) => store.search);
 
   useEffect(() => {
@@ -63,34 +65,93 @@ const Head = () => {
     // }
   };
 
+  if (isMobileSearchVisible) {
+    return (
+      <div className="flex items-center gap-2 p-4 shadow-xl md:hidden">
+        <IoArrowBackOutline
+          className="cursor-pointer text-2xl"
+          onClick={() => setIsMobileSearchVisible(false)}
+        />
+        <div className="relative flex flex-grow">
+          <input
+            className="w-full rounded-full border border-gray-400 p-2 px-4 outline-none"
+            type="text"
+            placeholder="Search"
+            autoFocus
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={handleBlur}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                navigate(`/?q=${searchQuery}`);
+                setShowSuggestions(false);
+                setIsMobileSearchVisible(false);
+              }
+            }}
+          />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute top-12 z-10 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-100 bg-white shadow-2xl">
+              <ul>
+                {suggestions.map((suggestion) => (
+                  <li
+                    key={suggestion}
+                    className="block border-b px-4 py-2 shadow-sm hover:bg-gray-100"
+                    onMouseDown={(e) => {
+                      // Using onMouseDown to trigger before onBlur
+                      e.preventDefault();
+                      setSearchQuery(suggestion);
+                      navigate(`/?q=${suggestion}`);
+                      setShowSuggestions(false);
+                      setIsMobileSearchVisible(false);
+                    }}
+                  >
+                    🔍 {suggestion}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="m-2 grid grid-flow-col items-center p-4 shadow-xl">
-      <div className="col-span-1 flex items-center gap-2 ">
+    <div className="flex items-center justify-between p-4 shadow-sm md:shadow-xl">
+      <div className="flex items-center gap-2">
         <CiMenuBurger
           onClick={toggleMenuHandler}
-          className="cursor-pointer text-xl"
+          className="hidden cursor-pointer text-xl md:block"
         />
         <img
-          className="mx-2 h-6 cursor-pointer"
+          className="h-5 cursor-pointer md:mx-2 md:h-6"
           alt="youtube-logo"
           src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/YouTube_Logo_2017.svg/2560px-YouTube_Logo_2017.svg.png"
           onClick={() => navigate(`/`)}
         />
       </div>
-      <div className="relative col-span-10 flex justify-center">
-        <div className="flex w-2/3">
+
+      <div className="relative hidden w-1/2 md:flex md:justify-center">
+        <div className="flex w-full max-w-2xl">
           <input
-            className="relative w-full rounded-l-full border border-gray-400 p-2 pl-6"
+            className="relative w-full rounded-l-full border border-gray-400 p-2 pl-6 outline-none"
             type="text"
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
-            onBlur={handleBlur}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                navigate(`/?q=${searchQuery}`);
+                setShowSuggestions(false);
+              }
+            }}
           />
           <button
-            className="rounded-r-full border border-gray-400 p-2 pl-4"
-            onClick={(e) => {
+            className="rounded-r-full border border-gray-400 bg-gray-100 p-2 px-5 hover:bg-gray-200"
+            onClick={() => {
               if (!searchQuery) return;
               navigate(`/?q=${searchQuery}`);
               setShowSuggestions(false);
@@ -99,14 +160,15 @@ const Head = () => {
             🔍
           </button>
         </div>
-        {showSuggestions && (
-          <div className="absolute top-11 z-10 max-h-60 w-2/3 overflow-y-auto rounded-lg border border-gray-100 bg-white shadow-2xl">
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute top-11 z-10 max-h-60 w-full max-w-2xl overflow-y-auto rounded-lg border border-gray-100 bg-white shadow-2xl">
             <ul>
               {suggestions.map((suggestion) => (
                 <li
                   key={suggestion}
-                  className="block border-b px-2 py-1 shadow-sm hover:bg-gray-100"
+                  className="block border-b px-4 py-2 shadow-sm hover:bg-gray-100"
                   onClick={() => {
+                    setSearchQuery(suggestion);
                     navigate(`/?q=${suggestion}`);
                     setShowSuggestions(false);
                   }}
@@ -118,8 +180,13 @@ const Head = () => {
           </div>
         )}
       </div>
-      <div className="">
-        <FaUser />
+
+      <div className="flex items-center gap-4">
+        <IoSearchOutline
+          className="cursor-pointer text-2xl md:hidden"
+          onClick={() => setIsMobileSearchVisible(true)}
+        />
+        <FaUser className="cursor-pointer text-xl" />
       </div>
     </div>
   );

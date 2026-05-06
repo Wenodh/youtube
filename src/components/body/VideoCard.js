@@ -56,10 +56,10 @@ const VideoCard = ({ info }) => {
           allowFullScreen
         ></iframe>
       )}
-      <div className="flex gap-2 p-2">
+      <div className="flex gap-3 p-2">
         {channelLogo && (
           <Link
-            className="mt-2 min-w-9 max-w-9"
+            className="mt-1 h-9 w-9 shrink-0"
             to={"/channel?c=" + channelTitle}
           >
             <img
@@ -69,18 +69,20 @@ const VideoCard = ({ info }) => {
             />
           </Link>
         )}
-        <ul>
-          <li className="line-clamp-2 text-ellipsis text-pretty text-base font-medium">
+        <div className="flex flex-col">
+          <h3 className="line-clamp-2 text-ellipsis text-base font-bold leading-snug">
             {title}
-          </li>
-          <li className="text-sm font-normal text-gray-600">{channelTitle}</li>
-          <li className="text-xs font-normal text-gray-600">
-            <span>
-              {statistics?.viewCount && formatViewCount(statistics?.viewCount)} views -{" "}
+          </h3>
+          <div className="mt-1 text-sm text-gray-600">
+            <p className="hover:text-black">{channelTitle}</p>
+            <p className="text-xs">
+              {statistics?.viewCount && (
+                <span>{formatViewCount(statistics?.viewCount)} views • </span>
+              )}
               {formatDate(publishedAt)}
-            </span>
-          </li>
-        </ul>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

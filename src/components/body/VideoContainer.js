@@ -15,10 +15,12 @@ const VideoContainer = () => {
   const categoryId = searchParams.get("categoryId");
 
   useEffect(() => {
-    getVideos();
+    setVideos([]);
+    setNextPageToken("");
+    getVideos(true);
   }, [query, categoryId]);
 
-  const getVideos = async () => {
+  const getVideos = async (isNewQuery = false) => {
     try {
       let apiUrl = YOUTUBE_VIDEOS_API;
       if (query) {
@@ -27,13 +29,17 @@ const VideoContainer = () => {
       if (categoryId) {
         apiUrl += `&videoCategoryId=${categoryId}`;
       }
-      if (nextPageToken) {
+      if (!isNewQuery && nextPageToken) {
         apiUrl += `&pageToken=${nextPageToken}`;
       }
       const res = await fetch(apiUrl);
       const data = await res.json();
       setNextPageToken(data.nextPageToken);
-      setVideos([...videos, ...data.items]);
+      if (isNewQuery) {
+        setVideos(data.items);
+      } else {
+        setVideos((prev) => [...prev, ...data.items]);
+      }
     } catch (err) {
       console.error("Failed to fetch videos", err);
     }

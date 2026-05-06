@@ -41,10 +41,10 @@ const WatchPage = () => {
   }, []);
 
   return (
-    <div className="grid w-full grid-cols-12 p-4">
-      <div className="col-span-full md:col-span-9">
+    <div className="grid w-full grid-cols-12 p-2 md:p-4 pb-20 md:pb-4">
+      <div className="col-span-full xl:col-span-9">
         <iframe
-          className="aspect-video w-full"
+          className="aspect-video w-full rounded-xl"
           src={`https://www.youtube.com/embed/${searchParams.get("v")}`}
           title="YouTube video player"
           frameborder="0"
@@ -59,34 +59,38 @@ const WatchPage = () => {
                 <h1 className="m-2 overflow-hidden text-ellipsis text-xl font-bold">
                   {video?.snippet?.title}
                 </h1>
-                <div className="flex m-2 w-full">
-                    <FaUserTie className="mt-1 rounded-full border border-gray-400 text-4xl" />
-                    <ul>
-                      <li className="ml-2 font-bold text-gray-800">
-                        {video?.snippet?.channelTitle}
-                      </li>
-                      <li className=" ml-2 text-sm">777M Subscribers</li>
-                    </ul>
-                    <div className="flex justify-between">
-                      <button className="m-2 ml-5 rounded-full border border-gray-200 bg-black px-5 py-1 text-white shadow-sm">
+                <div className="flex flex-col m-2 w-full gap-4 md:flex-row md:items-center">
+                    <div className="flex items-center">
+                      <FaUserTie className="rounded-full border border-gray-400 text-4xl" />
+                      <ul>
+                        <li className="ml-2 font-bold text-gray-800 line-clamp-1">
+                          {video?.snippet?.channelTitle}
+                        </li>
+                        <li className=" ml-2 text-xs text-gray-500">777M Subscribers</li>
+                      </ul>
+                      <button className="ml-4 rounded-full bg-black px-4 py-2 text-sm font-medium text-white">
                         Subscribe
-                    </button>
-                    <div className="flex justify-between">
-                      <button className="m-2 ml-32 flex rounded-full border border-gray-200 bg-gray-200 px-2 py-1 shadow-sm hover:bg-gray-300">
-                        <FiThumbsUp className="mx-3 mt-1" />{" "}
-                        {formatViewCount(video?.statistics?.likeCount)} |{" "}
-                        <FiThumbsDown className="mx-3 mt-1" />
                       </button>
-                      <button className=" m-2 flex rounded-full border border-gray-200 bg-gray-200 px-2 py-1 shadow-sm hover:bg-gray-300 ">
-                        <PiShareFat className="mx-2 mt-1 text-xl" /> Share
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
+                      <div className="flex shrink-0 rounded-full bg-gray-100">
+                        <button className="flex items-center gap-2 border-r border-gray-300 px-3 py-2 hover:bg-gray-200">
+                          <FiThumbsUp /> {formatViewCount(video?.statistics?.likeCount)}
+                        </button>
+                        <button className="px-3 py-2 hover:bg-gray-200">
+                          <FiThumbsDown />
+                        </button>
+                      </div>
+                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3 py-2 hover:bg-gray-200">
+                        <PiShareFat className="text-xl" /> Share
                       </button>
-                      <button className="m-2 flex rounded-full border border-gray-200 bg-gray-200 px-2 py-1 shadow-sm hover:bg-gray-300 ">
-                        <GoDownload className="mx-1 text-xl" /> Download
+                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3 py-2 hover:bg-gray-200">
+                        <GoDownload className="text-xl" /> Download
                       </button>
-                      <button className="m-2 rounded-full border border-gray-200 bg-gray-200 px-2 py-1 shadow-sm hover:bg-gray-300 ">
+                      <button className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200">
                         <BsThreeDots />
                       </button>
-                      </div>
                     </div>
                 </div>
               </div>
@@ -109,32 +113,34 @@ const WatchPage = () => {
           );
         })}
       </div>
-      <div className="col-span-full p-2 md:col-span-3">
-        Recommendations
-        {suggestionVideo.map((info) => {
-          return (
-            <>
+      <div className="col-span-full p-2 xl:col-span-3">
+        <h2 className="mb-2 font-bold">Recommendations</h2>
+        <div className="flex flex-col gap-2">
+          {suggestionVideo.map((info) => {
+            return (
               <Link to={"?v=" + info.id} key={info.id}>
-                <div className="flex w-[28rem] rounded-md p-2 hover:bg-gray-200">
+                <div className="flex gap-2 rounded-md hover:bg-gray-100 p-1">
                   <img
-                    className="rounded-xl"
-                    src={info?.snippet?.thumbnails?.default?.url}
-                    alt="thumails"
+                    className="h-24 w-40 rounded-lg object-cover"
+                    src={info?.snippet?.thumbnails?.medium?.url}
+                    alt="thumbnails"
                   />
-                  <ul className="ml-2 overflow-hidden text-ellipsis">
-                    <li className="text-gray w-[28rem] text-sm font-bold">
+                  <div className="flex flex-col overflow-hidden">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-tight">
                       {info?.snippet?.title}
-                    </li>
-                    <li className="text-sm">{info?.snippet?.channelTitle}</li>
-                    <li className="text-sm">
-                      {formatViewCount(info?.statistics?.viewCount)} Views
-                    </li>
-                  </ul>
+                    </h3>
+                    <p className="mt-1 text-xs text-gray-600">
+                      {info?.snippet?.channelTitle}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {formatViewCount(info?.statistics?.viewCount)} views
+                    </p>
+                  </div>
                 </div>
               </Link>
-            </>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
