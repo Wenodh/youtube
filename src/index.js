@@ -6,7 +6,8 @@ import reportWebVitals from './reportWebVitals';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').then(registration => {
+    const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+    navigator.serviceWorker.register(swUrl).then(registration => {
       console.log('SW registered: ', registration);
     }).catch(registrationError => {
       console.log('SW registration failed: ', registrationError);
