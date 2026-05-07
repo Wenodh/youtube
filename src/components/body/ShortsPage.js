@@ -14,7 +14,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
 
   useEffect(() => {
     // Initialize YouTube Player
-    const player = new window.YT.Player(containerRef.current, {
+    new window.YT.Player(containerRef.current, {
       videoId: short.id.videoId,
       playerVars: {
         autoplay: isActive ? 1 : 0,
@@ -40,6 +40,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
         playerRef.current.destroy();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [short.id.videoId]); // Only re-create if video ID changes
 
   useEffect(() => {
@@ -72,6 +73,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
     } else {
       setShowIcon(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, isGlobalMuted]);
 
   const handleContainerClick = () => {
