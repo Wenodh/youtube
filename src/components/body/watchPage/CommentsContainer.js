@@ -25,24 +25,24 @@ const Comment = ({ data }) => {
         />
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-gray-900">
+            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
               {authorDisplayName}
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatDistanceToNow(new Date(publishedAt))} ago
             </span>
           </div>
           <p
-            className="text-sm text-gray-800"
+            className="text-sm text-gray-800 dark:text-gray-300"
             dangerouslySetInnerHTML={{ __html: textDisplay }}
           />
           <div className="mt-1 flex items-center gap-4">
             <div className="flex items-center gap-1">
-              <FiThumbsUp className="cursor-pointer text-sm" />
-              <span className="text-xs text-gray-600">{likeCount > 0 && likeCount}</span>
+              <FiThumbsUp className="cursor-pointer text-sm dark:text-gray-400" />
+              <span className="text-xs text-gray-600 dark:text-gray-400">{likeCount > 0 && likeCount}</span>
             </div>
-            <FiThumbsDown className="cursor-pointer text-sm" />
-            <button className="text-xs font-bold hover:bg-gray-100 px-2 py-1 rounded-full">
+            <FiThumbsDown className="cursor-pointer text-sm dark:text-gray-400" />
+            <button className="text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1 rounded-full dark:text-gray-300">
               Reply
             </button>
           </div>

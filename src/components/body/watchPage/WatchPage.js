@@ -20,7 +20,7 @@ const VideoDescription = ({ video }) => {
 
   return (
     <div
-      className={`m-2 rounded-xl bg-gray-100 p-3 text-sm hover:bg-gray-200 cursor-pointer ${
+      className={`m-2 rounded-xl bg-gray-100 dark:bg-gray-800/50 p-3 text-sm hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors cursor-pointer ${
         !isExpanded ? "max-h-24 overflow-hidden" : ""
       }`}
       onClick={() => setIsExpanded(!isExpanded)}
@@ -103,12 +103,12 @@ const WatchPage = () => {
                     <div className="flex items-center">
                       <FaUserTie className="rounded-full border border-gray-400 text-4xl" />
                       <ul>
-                        <li className="ml-2 font-bold text-gray-800 line-clamp-1">
+                        <li className="ml-2 font-bold text-gray-800 dark:text-gray-200 line-clamp-1">
                           {video?.snippet?.channelTitle}
                         </li>
-                        <li className=" ml-2 text-xs text-gray-500">777M Subscribers</li>
+                        <li className=" ml-2 text-xs text-gray-500 dark:text-gray-400">777M Subscribers</li>
                       </ul>
-                      <button className="ml-4 rounded-full bg-black px-4 py-2 text-sm font-medium text-white">
+                      <button className="ml-4 rounded-full bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black">
                         Subscribe
                       </button>
                     </div>
@@ -125,7 +125,7 @@ const WatchPage = () => {
                           <FiThumbsDown />
                         </button>
                       </div>
-                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3 py-2 hover:bg-gray-200">
+                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <PiShareFat className="text-xl" /> Share
                       </button>
                       <button
@@ -143,7 +143,7 @@ const WatchPage = () => {
                       <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <GoDownload className="text-xl" /> Download
                       </button>
-                      <button className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+                      <button className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <BsThreeDots />
                       </button>
                     </div>
@@ -170,20 +170,20 @@ const WatchPage = () => {
           {suggestionVideo?.map((info) => {
             return (
               <Link to={"?v=" + info.id} key={info.id}>
-                <div className="flex gap-2 rounded-md hover:bg-gray-100 p-1">
+                <div className="flex gap-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 p-1">
                   <img
                     className="h-24 w-40 rounded-lg object-cover"
                     src={info?.snippet?.thumbnails?.medium?.url}
                     alt="thumbnails"
                   />
                   <div className="flex flex-col overflow-hidden">
-                    <h3 className="line-clamp-2 text-sm font-bold leading-tight">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-tight dark:text-gray-100">
                       {info?.snippet?.title}
                     </h3>
-                    <p className="mt-1 text-xs text-gray-600">
+                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
                       {info?.snippet?.channelTitle}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       {formatViewCount(info?.statistics?.viewCount)} views
                     </p>
                   </div>

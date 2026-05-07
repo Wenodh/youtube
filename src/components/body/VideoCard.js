@@ -71,11 +71,11 @@ const VideoCard = ({ info }) => {
           </Link>
         )}
         <div className="flex flex-col gap-0.5 sm:gap-1">
-          <h3 className="line-clamp-2 text-ellipsis text-[13px] font-semibold leading-snug text-[#0f0f0f] sm:text-[15px]">
+          <h3 className="line-clamp-2 text-ellipsis text-[13px] font-semibold leading-snug text-[#0f0f0f] dark:text-gray-100 sm:text-[15px]">
             {title}
           </h3>
-          <div className="text-[11px] text-[#606060] sm:text-[13px]">
-            <p className="hover:text-black line-clamp-1">{channelTitle}</p>
+          <div className="text-[11px] text-[#606060] dark:text-gray-400 sm:text-[13px]">
+            <p className="hover:text-black dark:hover:text-white line-clamp-1">{channelTitle}</p>
             <p className="text-[10px] sm:text-xs">
               {statistics?.viewCount && (
                 <span>{formatViewCount(statistics?.viewCount)} views • </span>

@@ -38,9 +38,9 @@ const SideBar = () => {
 
   const menuItem = (to, icon, text) => (
     <li className="flex rounded-lg py-2 pl-2 hover:bg-gray-200 dark:hover:bg-gray-800">
-      <Link to={to} className="flex">
-        {React.createElement(icon, { className: "mr-5 mt-1 text-xl" })}
-        {text}
+      <Link to={to} className="flex w-full items-center">
+        {React.createElement(icon, { className: "mr-5 text-xl" })}
+        <span className="text-sm">{text}</span>
       </Link>
     </li>
   );
@@ -48,13 +48,13 @@ const SideBar = () => {
   return (
     <div ref={animationParent} className={isMenuOpen ? "md:w-64" : ""}>
       {isMenuOpen && (
-        <div className="absolute z-20 h-full min-h-screen w-48 overflow-y-auto bg-white dark:bg-[#0f0f0f] p-5 shadow-lg md:static">
+        <div className="absolute z-20 h-full min-h-screen w-56 overflow-y-auto bg-white dark:bg-[#0f0f0f] p-3 shadow-lg md:static">
           <ul>
             {menuItem("/", AiOutlineHome, "Home")}
             {menuItem("/shorts", BsPlayBtn, "Shorts")}
             {menuItem("/underconstruction", MdOutlineSubscriptions, "Subscriptions")}
           </ul>
-          <hr className="mt-2" />
+          <hr className="my-3 border-gray-200 dark:border-gray-800" />
           <ul>
             {menuItem("/library", MdOutlineVideoLibrary, "Library")}
             {menuItem("/history", GrHistory, "History")}
@@ -62,19 +62,19 @@ const SideBar = () => {
             {menuItem("/watchlater", MdOutlineWatchLater, "Watch Later")}
             {menuItem("/liked", AiOutlineLike, "Liked Videos")}
           </ul>
-          <hr className="mt-2" />
-          <h3 className="mt-5 font-bold">Explore</h3>
+          <hr className="my-3 border-gray-200 dark:border-gray-800" />
+          <h3 className="mb-2 ml-2 text-sm font-bold">Explore</h3>
           <ul>
-            {menuItem("/underconstruction", HiTrendingUp, "Trending")}
-            {menuItem("/underconstruction", IoGameControllerOutline, "Gaming")}
-            {menuItem("/underconstruction", BiMoviePlay, "Movies")}
-            {menuItem("/underconstruction", IoMusicalNotesOutline, "Music")}
-            {menuItem("/underconstruction", MdOutlineLiveTv, "Live")}
-            {menuItem("/underconstruction", IoNewspaperOutline, "News")}
-            {menuItem("/underconstruction", AiOutlineShopping, "Shopping")}
-            {menuItem("/underconstruction", MdOutlineSportsSoccer, "Sports")}
-            {menuItem("/underconstruction", PiStudentFill, "Learning")}
-            {menuItem("/underconstruction", FaShopify, "Fasion & Beauty")}
+            {menuItem("/?categoryId=17", HiTrendingUp, "Trending")}
+            {menuItem("/?categoryId=20", IoGameControllerOutline, "Gaming")}
+            {menuItem("/?categoryId=30", BiMoviePlay, "Movies")}
+            {menuItem("/?categoryId=10", IoMusicalNotesOutline, "Music")}
+            {menuItem("/?categoryId=1", MdOutlineLiveTv, "Live")}
+            {menuItem("/?categoryId=25", IoNewspaperOutline, "News")}
+            {menuItem("/?categoryId=1", AiOutlineShopping, "Shopping")}
+            {menuItem("/?categoryId=17", MdOutlineSportsSoccer, "Sports")}
+            {menuItem("/?categoryId=27", PiStudentFill, "Learning")}
+            {menuItem("/?categoryId=26", FaShopify, "Fashion & Beauty")}
           </ul>
           <hr className="mt-2" />
           <h3 className="mt-5 font-bold">More from YouTube</h3>

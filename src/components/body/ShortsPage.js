@@ -127,7 +127,7 @@ const ShortsPage = () => {
   return (
     <div
       ref={containerRef}
-      className="h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50"
+      className="h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f]"
     >
       {shorts?.map((short) => (
         <ShortItem
