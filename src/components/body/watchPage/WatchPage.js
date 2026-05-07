@@ -88,11 +88,30 @@ const WatchPage = () => {
     getSubscriber();
   }, []);
 
-  const handleNativePiP = () => {
-    // For iframe-based YouTube players, true native browser PiP is restricted.
-    // However, we can open the video in a minimal popup window to simulate it,
-    // or if the browser supports it, pop out the entire app.
-    // Here we'll implement a popup window strategy for true 'picture in picture' behavior.
+  const handleNativePiP = async () => {
+    // Attempt to use Native Picture-in-Picture API if supported
+    // Since we are using an iframe, we need to target the video element inside it,
+    // which is not possible due to cross-origin restrictions.
+    // However, if the browser supports documentPictureInPicture (newer API), we can use that.
+
+    if ('windowControlsOverlay' in navigator || window.documentPictureInPicture) {
+        try {
+            const pipWindow = await window.documentPictureInPicture.requestWindow({
+                width: 480,
+                height: 270,
+            });
+
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            iframe.className = "w-full h-full border-0";
+            pipWindow.document.body.append(iframe);
+            return;
+        } catch (err) {
+            console.error("Document PiP failed", err);
+        }
+    }
+
+    // Fallback: Custom Popup Window
     const width = 480;
     const height = 270;
     const left = window.screen.width - width - 20;
