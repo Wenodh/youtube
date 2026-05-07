@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const TagButton = ({ text, id }) => {
   const navigate = useNavigate();
@@ -10,10 +11,10 @@ const TagButton = ({ text, id }) => {
 
   return (
     <button
-      className={`rounded-lg px-4 py-1 text-xs font-semibold shadow min-w-fit ${
+      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 min-w-fit ${
         isSelected
-          ? "bg-blue-500 text-white"
-          : "bg-gray-300/60 text-gray-800 hover:bg-gray-300/90"
+          ? "bg-black text-white dark:bg-white dark:text-black"
+          : "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
       }`}
       onClick={() => navigate(`/?categoryId=${id}`)}
     >
@@ -347,31 +348,45 @@ const TagList = () => {
   ];
   const containerRef = useRef(null);
 
-  const scrollNext = () => {
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(true);
+
+  const handleScroll = () => {
+    const { scrollLeft, scrollWidth, clientWidth } = containerRef.current;
+    setShowLeft(scrollLeft > 0);
+    setShowRight(scrollLeft < scrollWidth - clientWidth - 5);
+  };
+
+  useEffect(() => {
     const container = containerRef.current;
-    container.scrollBy({
-      left: 150, // Adjust scroll distance as needed
-      behavior: "smooth",
-    });
+    container.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollNext = () => {
+    containerRef.current.scrollBy({ left: 200, behavior: "smooth" });
   };
 
   const scrollPrev = () => {
-    const container = containerRef.current;
-    container.scrollBy({
-      left: -150, // Adjust scroll distance as needed
-      behavior: "smooth",
-    });
+    containerRef.current.scrollBy({ left: -200, behavior: "smooth" });
   };
+
   return (
-    <div className="grid grid-cols-12 items-center justify-center">
-      <button
-        onClick={scrollPrev}
-        className=" absolute rounded-full bg-slate-400/70 px-4 py-2 text-xl font-bold text-gray-600 hover:bg-slate-400 focus:outline-none "
-      >
-        &larr;
-      </button>
+    <div className="relative group mx-2 md:mx-6 overflow-hidden">
+      {showLeft && (
+        <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-white dark:from-[#0f0f0f] via-white dark:via-[#0f0f0f] to-transparent pr-8">
+          <button
+            onClick={scrollPrev}
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <FiChevronLeft className="text-xl text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
+      )}
+
       <div
-        className="col-span-12 flex gap-2 overflow-x-auto px-12 py-4"
+        className="flex gap-3 overflow-x-auto no-scrollbar py-3"
         ref={containerRef}
       >
         {tags
@@ -380,12 +395,17 @@ const TagList = () => {
             <TagButton key={tag.id} id={tag.id} text={tag.snippet.title} />
           ))}
       </div>
-      <button
-        onClick={scrollNext}
-        className=" absolute right-0 rounded-full bg-slate-400/70 px-4 py-2 text-xl font-bold text-gray-600 hover:bg-slate-400 focus:outline-none"
-      >
-        &rarr;
-      </button>
+
+      {showRight && (
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-l from-white dark:from-[#0f0f0f] via-white dark:via-[#0f0f0f] to-transparent pl-8">
+          <button
+            onClick={scrollNext}
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <FiChevronRight className="text-xl text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

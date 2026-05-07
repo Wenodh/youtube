@@ -4,7 +4,7 @@ import TagList from "./TagList";
 
 const MainContainer = () => {
   return (
-    <div className="w-full">
+    <div className="flex w-full flex-col overflow-hidden pb-20 md:pb-0">
       <TagList />
       <VideoContainer />
     </div>

@@ -9,10 +9,7 @@ const VideoCard = ({ info }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    fetchChannelLogo();
-  }, [channelId]);
-
-  const fetchChannelLogo = async () => {
+    const fetchChannelLogo = async () => {
     try {
       const response = await fetch(
         `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`,
@@ -26,6 +23,8 @@ const VideoCard = ({ info }) => {
       console.error("Error fetching channel logo:", error);
     }
   };
+    fetchChannelLogo();
+  }, [channelId]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -37,29 +36,31 @@ const VideoCard = ({ info }) => {
 
   return (
     <div
-      className="relative"
+      className="group relative flex flex-col gap-2 transition-all duration-300"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      <div className="relative overflow-hidden rounded-xl">
       <img
-        className="aspect-video w-full rounded-lg"
+        className="aspect-video w-full transition-transform duration-500 group-hover:scale-105"
         src={thumbnails.medium.url}
         alt="thumbnail"
       />
       {isHovered && (
         <iframe
-          className="absolute left-0 top-0 aspect-video w-full"
-          src={`https://www.youtube.com/embed/${info.id.videoId || info.id}?autoplay=1`}
+          className="absolute left-0 top-0 z-10 aspect-video w-full rounded-xl"
+          src={`https://www.youtube.com/embed/${info.id.videoId || info.id}?autoplay=1&mute=1`}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         ></iframe>
       )}
-      <div className="flex gap-2 p-2">
+      </div>
+      <div className="flex gap-2 p-1 sm:gap-3">
         {channelLogo && (
           <Link
-            className="mt-2 min-w-9 max-w-9"
+            className="mt-1 h-7 w-7 shrink-0 sm:h-9 sm:w-9"
             to={"/channel?c=" + channelTitle}
           >
             <img
@@ -69,18 +70,20 @@ const VideoCard = ({ info }) => {
             />
           </Link>
         )}
-        <ul>
-          <li className="line-clamp-2 text-ellipsis text-pretty text-base font-medium">
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="line-clamp-2 text-ellipsis text-[13px] font-semibold leading-snug text-[#0f0f0f] dark:text-gray-100 sm:text-[15px]">
             {title}
-          </li>
-          <li className="text-sm font-normal text-gray-600">{channelTitle}</li>
-          <li className="text-xs font-normal text-gray-600">
-            <span>
-              {statistics?.viewCount && formatViewCount(statistics?.viewCount)} views -{" "}
+          </h3>
+          <div className="text-[11px] text-[#606060] dark:text-gray-400 sm:text-[13px]">
+            <p className="hover:text-black dark:hover:text-white line-clamp-1">{channelTitle}</p>
+            <p className="text-[10px] sm:text-xs">
+              {statistics?.viewCount && (
+                <span>{formatViewCount(statistics?.viewCount)} views • </span>
+              )}
               {formatDate(publishedAt)}
-            </span>
-          </li>
-        </ul>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
