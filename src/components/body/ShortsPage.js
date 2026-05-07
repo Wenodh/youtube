@@ -94,6 +94,9 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
         {/* YouTube Player Container */}
         <div ref={containerRef} className="h-full w-full pointer-events-none"></div>
 
+        {/* Touch/Interaction blocker to prevent native controls from showing */}
+        <div className="absolute inset-0 z-0 bg-transparent"></div>
+
         {/* Mute/Unmute Overlay */}
         {isActive && showIcon && (
           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/40 p-4 rounded-full text-white pointer-events-none transition-all duration-300 z-20 ${isGlobalMuted ? 'animate-pulse opacity-100 scale-100' : 'opacity-0 scale-125'}`}>
@@ -237,7 +240,7 @@ const ShortsPage = () => {
   return (
     <div
       ref={containerRef}
-      className="h-[calc(100vh-56px)] md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f]"
+      className="h-[calc(100vh-56px)] md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f] pb-[48px] md:pb-0"
     >
       {shorts?.map((short) => (
         <ShortItem
