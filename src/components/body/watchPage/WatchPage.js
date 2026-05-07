@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { closeMenu, toggleLikeVideo, addToWatchLater, addToHistory } from "../../../utils/appSlice";
+import { setMiniPlayerVideo, activateMiniPlayer, deactivateMiniPlayer } from "../../../utils/miniPlayerSlice";
 import { Link, useSearchParams } from "react-router-dom";
 import CommentsContainer from "./CommentsContainer";
 import LiveChat from "./LiveChat";
@@ -9,7 +10,7 @@ import { formatDate, formatViewCount } from "../../../utils/helperFunctions";
 import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
 import { PiShareFat } from "react-icons/pi";
 import { GoDownload } from "react-icons/go";
-import { FiMessageSquare } from "react-icons/fi";
+import { FiMessageSquare, FiExternalLink } from "react-icons/fi";
 import { MdOutlineWatchLater } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 import { FaUserTie } from "react-icons/fa6";
@@ -41,6 +42,7 @@ const VideoDescription = ({ video }) => {
 
 const WatchPage = () => {
   const [searchParams] = useSearchParams();
+  const videoId = searchParams.get("v");
   const dispatch = useDispatch();
   const likedVideos = useSelector(store => store.app.likedVideos);
   const watchLater = useSelector(store => store.app.watchLater);
@@ -55,13 +57,19 @@ const WatchPage = () => {
       const json = await data.json();
       setVideoInfo(json?.items || []);
       if (json?.items?.length > 0) {
-        dispatch(addToHistory(json.items[0]));
+        const video = json.items[0];
+        dispatch(addToHistory(video));
+        dispatch(setMiniPlayerVideo(video));
       }
     };
     getVideoInfo();
   }, [searchParams, dispatch]);
   useEffect(() => {
     dispatch(closeMenu());
+    dispatch(deactivateMiniPlayer());
+    return () => {
+        dispatch(activateMiniPlayer());
+    };
   }, [dispatch]);
 
   const [suggestionVideo, setSuggestionVideo] = useState([]);
@@ -80,12 +88,30 @@ const WatchPage = () => {
     getSubscriber();
   }, []);
 
+  const handleNativePiP = () => {
+    // For iframe-based YouTube players, true native browser PiP is restricted.
+    // However, we can open the video in a minimal popup window to simulate it,
+    // or if the browser supports it, pop out the entire app.
+    // Here we'll implement a popup window strategy for true 'picture in picture' behavior.
+    const width = 480;
+    const height = 270;
+    const left = window.screen.width - width - 20;
+    const top = window.screen.height - height - 100;
+
+    window.open(
+      `https://www.youtube.com/embed/${videoId}?autoplay=1`,
+      'YouTubePiP',
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,status=no,location=no,toolbar=no`
+    );
+  };
+
   return (
     <div className="grid w-full grid-cols-12 p-2 md:p-4 pb-20 md:pb-4">
       <div className="col-span-full xl:col-span-9">
         <iframe
+          id="videoPlayer"
           className="aspect-video w-full rounded-xl"
-          src={`https://www.youtube.com/embed/${searchParams.get("v")}`}
+          src={`https://www.youtube.com/embed/${videoId}`}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -142,6 +168,13 @@ const WatchPage = () => {
                       </button>
                       <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <GoDownload className="text-xl" /> Download
+                      </button>
+                      <button
+                        className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        onClick={handleNativePiP}
+                        title="Picture in Picture"
+                      >
+                        <FiExternalLink className="text-xl" /> PiP
                       </button>
                       <button className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <BsThreeDots />
