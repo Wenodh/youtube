@@ -59,8 +59,9 @@ const Comment = ({ data }) => {
   );
 };
 
-const CommentsContainer = ({ videoId }) => {
+const CommentsContainer = ({ videoId, isVisible }) => {
   const [comments, setComments] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const getComments = useCallback(async () => {
     try {
@@ -75,17 +76,28 @@ const CommentsContainer = ({ videoId }) => {
   useEffect(() => {
     if (videoId) {
       getComments();
+      setVisibleCount(10);
     }
   }, [videoId, getComments]);
 
+  if (!isVisible) return null;
+
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-bold mb-4">{comments.length} Comments</h2>
+      <h2 className="text-xl font-bold mb-4">Comments</h2>
       <div className="flex flex-col">
-        {comments.map((comment) => (
+        {comments.slice(0, visibleCount).map((comment) => (
           <Comment key={comment.id} data={comment} />
         ))}
       </div>
+      {visibleCount < comments.length && (
+        <button
+          className="w-full mt-4 py-2 text-blue-600 font-bold hover:bg-blue-50 rounded-full transition-colors"
+          onClick={() => setVisibleCount(prev => prev + 10)}
+        >
+          Load more
+        </button>
+      )}
     </div>
   );
 };

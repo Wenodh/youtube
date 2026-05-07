@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { CiMenuBurger } from "react-icons/ci";
-import { IoSearchOutline, IoArrowBackOutline } from "react-icons/io5";
+import { IoSearchOutline, IoArrowBackOutline, IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleMenu, setUser, logout } from "../utils/appSlice";
+import { toggleMenu, setUser, logout, toggleDarkMode } from "../utils/appSlice";
 import { YOUTUBE_SEARCH_API } from "../utils/constants";
 import axios from "axios";
 import jsonpAdapter from "axios-jsonp";
@@ -18,6 +18,11 @@ const Head = () => {
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
   const searchCache = useSelector((store) => store.search);
   const user = useSelector((store) => store.app.user);
+  const isDarkMode = useSelector((store) => store.app.isDarkMode);
+  const [searchHistory, setSearchHistory] = useState(() => {
+    const saved = localStorage.getItem("searchHistory");
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const parseJwt = useCallback((token) => {
     const base64Url = token.split(".")[1];
@@ -49,12 +54,15 @@ const Head = () => {
         callback: handleLoginCallback,
       });
 
-      google.accounts.id.renderButton(document.getElementById("signInDiv"), {
-        theme: "outline",
-        size: "medium",
-        type: "icon",
-        shape: "circle",
-      });
+      const signInDiv = document.getElementById("signInDiv");
+      if (signInDiv) {
+        google.accounts.id.renderButton(signInDiv, {
+          theme: "outline",
+          size: "medium",
+          type: "icon",
+          shape: "circle",
+        });
+      }
     }
   }, [user, handleLoginCallback]);
 
@@ -117,6 +125,7 @@ const Head = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 navigate(`/?q=${searchQuery}`);
+                addToHistory(searchQuery);
                 setShowSuggestions(false);
                 setIsMobileSearchVisible(false);
               }
@@ -150,8 +159,26 @@ const Head = () => {
     );
   }
 
+  const addToHistory = (q) => {
+    if (!q.trim()) return;
+    setSearchHistory(prev => {
+      const newHist = [q, ...prev.filter(h => h !== q)].slice(0, 10);
+      localStorage.setItem("searchHistory", JSON.stringify(newHist));
+      return newHist;
+    });
+  };
+
+  const removeHistory = (e, q) => {
+    e.stopPropagation();
+    setSearchHistory(prev => {
+      const newHist = prev.filter(h => h !== q);
+      localStorage.setItem("searchHistory", JSON.stringify(newHist));
+      return newHist;
+    });
+  };
+
   return (
-    <div className="sticky top-0 z-40 flex items-center justify-between bg-white/80 p-3 backdrop-blur-md md:px-6">
+    <div className="sticky top-0 z-40 flex items-center justify-between bg-white/80 dark:bg-[#0f0f0f]/80 p-3 backdrop-blur-md md:px-6">
       <div className="flex items-center gap-4">
         <CiMenuBurger
           onClick={toggleMenuHandler}
@@ -173,7 +200,7 @@ const Head = () => {
       <div className="relative hidden w-1/2 md:flex md:justify-center">
         <div className="flex w-full max-w-xl shadow-sm transition-shadow focus-within:shadow-md">
           <input
-            className="relative w-full rounded-l-full border border-gray-200 bg-gray-50/50 p-2 pl-6 outline-none focus:border-blue-500 focus:bg-white"
+            className="relative w-full rounded-l-full border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-2 pl-6 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800"
             type="text"
             placeholder="Search"
             value={searchQuery}
@@ -183,31 +210,56 @@ const Head = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 navigate(`/?q=${searchQuery}`);
+                addToHistory(searchQuery);
                 setShowSuggestions(false);
               }
             }}
           />
           <button
-            className="rounded-r-full border border-l-0 border-gray-200 bg-gray-50 p-2 px-6 transition-colors hover:bg-gray-100"
+            className="rounded-r-full border border-l-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-2 px-6 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => {
               if (!searchQuery) return;
               navigate(`/?q=${searchQuery}`);
+              addToHistory(searchQuery);
               setShowSuggestions(false);
             }}
           >
             <IoSearchOutline className="text-lg" />
           </button>
         </div>
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-14 z-10 max-h-[60vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/20 bg-white/95 p-1 shadow-2xl backdrop-blur-xl">
+        {showSuggestions && (suggestions.length > 0 || searchHistory.length > 0) && (
+          <div className="absolute top-14 z-10 max-h-[60vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/20 dark:border-gray-800 bg-white/95 dark:bg-[#0f0f0f]/95 p-1 shadow-2xl backdrop-blur-xl">
             <ul>
+              {!searchQuery && searchHistory.map((h) => (
+                <li
+                  key={h}
+                  className="flex items-center justify-between rounded-xl px-4 py-2 font-medium text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80 cursor-pointer"
+                  onClick={() => {
+                    setSearchQuery(h);
+                    navigate(`/?q=${h}`);
+                    setShowSuggestions(false);
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <IoSearchOutline className="shrink-0 text-lg text-gray-500" />
+                    <span className="line-clamp-1 text-[15px]">{h}</span>
+                  </div>
+                  <button
+                    onClick={(e) => removeHistory(e, h)}
+                    className="text-blue-500 text-xs hover:underline"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
               {suggestions.map((suggestion) => (
                 <li
                   key={suggestion}
-                  className="flex items-center gap-4 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-100/80 cursor-pointer"
+                  className="flex items-center gap-4 rounded-xl px-4 py-2 font-medium text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80 cursor-pointer"
                   onClick={() => {
                     setSearchQuery(suggestion);
                     navigate(`/?q=${suggestion}`);
+                    addToHistory(suggestion);
                     setShowSuggestions(false);
                   }}
                 >
@@ -221,6 +273,12 @@ const Head = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        <button
+          onClick={() => dispatch(toggleDarkMode())}
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          {isDarkMode ? <IoSunnyOutline className="text-xl" /> : <IoMoonOutline className="text-xl" />}
+        </button>
         <IoSearchOutline
           className="cursor-pointer text-2xl md:hidden"
           onClick={() => setIsMobileSearchVisible(true)}

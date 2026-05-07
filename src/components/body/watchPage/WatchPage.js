@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { closeMenu } from "../../../utils/appSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { closeMenu, toggleLikeVideo, addToWatchLater, addToHistory } from "../../../utils/appSlice";
 import { Link, useSearchParams } from "react-router-dom";
 import CommentsContainer from "./CommentsContainer";
+import LiveChat from "./LiveChat";
 import { YOUTUBE_VIDEOS_API, YOUTUBE_VIDEO_BY_ID } from "../../../utils/constants";
 import { formatDate, formatViewCount } from "../../../utils/helperFunctions";
 import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
 import { PiShareFat } from "react-icons/pi";
 import { GoDownload } from "react-icons/go";
+import { FiMessageSquare } from "react-icons/fi";
+import { MdOutlineWatchLater } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 import { FaUserTie } from "react-icons/fa6";
 
@@ -39,7 +42,10 @@ const VideoDescription = ({ video }) => {
 const WatchPage = () => {
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
+  const likedVideos = useSelector(store => store.app.likedVideos);
+  const watchLater = useSelector(store => store.app.watchLater);
   const [videoInfo, setVideoInfo] = useState([]);
+  const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
     const getVideoInfo = async () => {
@@ -48,9 +54,12 @@ const WatchPage = () => {
       const data = await fetch(YOUTUBE_VIDEO_BY_ID + videoId);
       const json = await data.json();
       setVideoInfo(json?.items || []);
+      if (json?.items?.length > 0) {
+        dispatch(addToHistory(json.items[0]));
+      }
     };
     getVideoInfo();
-  }, [searchParams]);
+  }, [searchParams, dispatch]);
   useEffect(() => {
     dispatch(closeMenu());
   }, [dispatch]);
@@ -59,9 +68,14 @@ const WatchPage = () => {
 
   useEffect(() => {
     const getSubscriber = async () => {
-      const data = await fetch(YOUTUBE_VIDEOS_API);
-      const json = await data.json();
-      setSuggestionVideo(json.items);
+      try {
+        const data = await fetch(YOUTUBE_VIDEOS_API);
+        const json = await data.json();
+        setSuggestionVideo(json?.items || []);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        setSuggestionVideo([]);
+      }
     };
     getSubscriber();
   }, []);
@@ -73,15 +87,15 @@ const WatchPage = () => {
           className="aspect-video w-full rounded-xl"
           src={`https://www.youtube.com/embed/${searchParams.get("v")}`}
           title="YouTube video player"
-          frameborder="0"
+          frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         ></iframe>
-        {videoInfo.map((video) => {
+        {videoInfo?.map((video) => {
           return (
-            <>
+            <React.Fragment key={video.id}>
               {/* Subscriber Section */}
-              <div key={video.id} className="col-span-full">
+              <div className="col-span-full">
                 <h1 className="m-2 overflow-hidden text-ellipsis text-xl font-bold">
                   {video?.snippet?.title}
                 </h1>
@@ -100,18 +114,33 @@ const WatchPage = () => {
                     </div>
 
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
-                      <div className="flex shrink-0 rounded-full bg-gray-100">
-                        <button className="flex items-center gap-2 border-r border-gray-300 px-3 py-2 hover:bg-gray-200">
+                      <div className="flex shrink-0 rounded-full bg-gray-100 dark:bg-gray-800">
+                        <button
+                          className={`flex items-center gap-2 border-r border-gray-300 dark:border-gray-700 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 ${likedVideos.some(v => v.id === video.id) ? 'text-blue-500' : ''}`}
+                          onClick={() => dispatch(toggleLikeVideo(video))}
+                        >
                           <FiThumbsUp /> {formatViewCount(video?.statistics?.likeCount)}
                         </button>
-                        <button className="px-3 py-2 hover:bg-gray-200">
+                        <button className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                           <FiThumbsDown />
                         </button>
                       </div>
                       <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3 py-2 hover:bg-gray-200">
                         <PiShareFat className="text-xl" /> Share
                       </button>
-                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3 py-2 hover:bg-gray-200">
+                      <button
+                        className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 transition-colors ${showComments ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        onClick={() => setShowComments(!showComments)}
+                      >
+                        <FiMessageSquare className="text-xl" /> Comments
+                      </button>
+                      <button
+                        className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 transition-colors ${watchLater.some(v => v.id === video.id) ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        onClick={() => dispatch(addToWatchLater(video))}
+                      >
+                        <MdOutlineWatchLater className="text-xl" /> {watchLater.some(v => v.id === video.id) ? 'Saved' : 'Watch Later'}
+                      </button>
+                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <GoDownload className="text-xl" /> Download
                       </button>
                       <button className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200">
@@ -124,15 +153,21 @@ const WatchPage = () => {
               <VideoDescription video={video} />
 
               {/* Comment Section */}
-              <CommentsContainer videoId={searchParams.get("v")} />
-            </>
+              <CommentsContainer
+                videoId={searchParams.get("v")}
+                isVisible={showComments}
+              />
+            </React.Fragment>
           );
         })}
       </div>
       <div className="col-span-full p-2 xl:col-span-3">
+        <div className="hidden xl:block mb-4">
+          <LiveChat />
+        </div>
         <h2 className="mb-2 font-bold">Recommendations</h2>
         <div className="flex flex-col gap-2">
-          {suggestionVideo.map((info) => {
+          {suggestionVideo?.map((info) => {
             return (
               <Link to={"?v=" + info.id} key={info.id}>
                 <div className="flex gap-2 rounded-md hover:bg-gray-100 p-1">

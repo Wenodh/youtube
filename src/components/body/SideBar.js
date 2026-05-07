@@ -56,11 +56,11 @@ const SideBar = () => {
           </ul>
           <hr className="mt-2" />
           <ul>
-            {menuItem("/underconstruction", MdOutlineVideoLibrary, "Library")}
-            {menuItem("/underconstruction", GrHistory, "History")}
+            {menuItem("/library", MdOutlineVideoLibrary, "Library")}
+            {menuItem("/history", GrHistory, "History")}
             {menuItem("/underconstruction", GoVideo, "Your Videos")}
-            {menuItem("/underconstruction", MdOutlineWatchLater, "Watch Later")}
-            {menuItem("/underconstruction", AiOutlineLike, "Liked Videos")}
+            {menuItem("/watchlater", MdOutlineWatchLater, "Watch Later")}
+            {menuItem("/liked", AiOutlineLike, "Liked Videos")}
           </ul>
           <hr className="mt-2" />
           <h3 className="mt-5 font-bold">Explore</h3>
