@@ -22,6 +22,8 @@ const BottomBar = () => {
     );
   };
 
+  if (location.pathname === "/shorts") return null;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 items-center border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f0f] py-2 md:hidden">
       {navItem("/", AiOutlineHome, "Home")}

@@ -7,11 +7,12 @@ import { YOUTUBE_SEARCH_API } from "../utils/constants";
 import axios from "axios";
 import jsonpAdapter from "axios-jsonp";
 import { cacheResults } from "../utils/searchSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Head = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -105,6 +106,8 @@ const Head = () => {
     dispatch(toggleMenu());
   };
 
+  const isShortsPage = location.pathname === "/shorts";
+
   if (isMobileSearchVisible) {
     return (
       <div className="flex items-center gap-2 p-4 shadow-xl md:hidden">
@@ -178,7 +181,7 @@ const Head = () => {
   };
 
   return (
-    <div className="sticky top-0 z-40 flex items-center justify-between bg-white/80 dark:bg-[#0f0f0f]/80 p-3 backdrop-blur-md md:px-6">
+    <div className={`sticky top-0 z-40 flex items-center justify-between bg-white/80 dark:bg-[#0f0f0f]/80 p-3 backdrop-blur-md md:px-6 ${isShortsPage ? 'hidden md:flex' : ''}`}>
       <div className="flex items-center gap-4">
         <CiMenuBurger
           onClick={toggleMenuHandler}
