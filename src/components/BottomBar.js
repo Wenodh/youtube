@@ -13,7 +13,7 @@ const BottomBar = () => {
       <Link
         to={to}
         className={`flex flex-col items-center justify-center gap-1 ${
-          isActive ? "text-black" : "text-gray-600"
+          isActive ? "text-black dark:text-white" : "text-gray-600 dark:text-gray-400"
         }`}
       >
         {React.createElement(icon, { className: "text-2xl" })}
@@ -23,7 +23,7 @@ const BottomBar = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t bg-white py-2 md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f0f] py-2 md:hidden">
       {navItem("/", AiOutlineHome, "Home")}
       {navItem("/shorts", BsPlayBtn, "Shorts")}
       {navItem("/underconstruction", MdOutlineSubscriptions, "Subscriptions")}

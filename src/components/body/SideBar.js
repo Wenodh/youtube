@@ -37,7 +37,7 @@ const SideBar = () => {
   const isMenuOpen = useSelector((store) => store.app.isMenuOpen);
 
   const menuItem = (to, icon, text) => (
-    <li className="flex rounded-lg py-2 pl-2 hover:bg-gray-200">
+    <li className="flex rounded-lg py-2 pl-2 hover:bg-gray-200 dark:hover:bg-gray-800">
       <Link to={to} className="flex">
         {React.createElement(icon, { className: "mr-5 mt-1 text-xl" })}
         {text}
@@ -48,7 +48,7 @@ const SideBar = () => {
   return (
     <div ref={animationParent} className={isMenuOpen ? "md:w-64" : ""}>
       {isMenuOpen && (
-        <div className="absolute z-20 h-full min-h-screen w-48 overflow-y-auto bg-white p-5 shadow-lg md:static">
+        <div className="absolute z-20 h-full min-h-screen w-48 overflow-y-auto bg-white dark:bg-[#0f0f0f] p-5 shadow-lg md:static">
           <ul>
             {menuItem("/", AiOutlineHome, "Home")}
             {menuItem("/shorts", BsPlayBtn, "Shorts")}

@@ -13,8 +13,8 @@ const TagButton = ({ text, id }) => {
     <button
       className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 min-w-fit ${
         isSelected
-          ? "bg-black text-white"
-          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+          ? "bg-black text-white dark:bg-white dark:text-black"
+          : "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
       }`}
       onClick={() => navigate(`/?categoryId=${id}`)}
     >
@@ -375,12 +375,12 @@ const TagList = () => {
   return (
     <div className="relative group mx-2 md:mx-6 overflow-hidden">
       {showLeft && (
-        <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-white via-white to-transparent pr-8">
+        <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-white dark:from-[#0f0f0f] via-white dark:via-[#0f0f0f] to-transparent pr-8">
           <button
             onClick={scrollPrev}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <FiChevronLeft className="text-xl text-gray-600" />
+            <FiChevronLeft className="text-xl text-gray-600 dark:text-gray-400" />
           </button>
         </div>
       )}
@@ -397,12 +397,12 @@ const TagList = () => {
       </div>
 
       {showRight && (
-        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-l from-white via-white to-transparent pl-8">
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-l from-white dark:from-[#0f0f0f] via-white dark:via-[#0f0f0f] to-transparent pl-8">
           <button
             onClick={scrollNext}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <FiChevronRight className="text-xl text-gray-600" />
+            <FiChevronRight className="text-xl text-gray-600 dark:text-gray-400" />
           </button>
         </div>
       )}
