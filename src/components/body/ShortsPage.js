@@ -4,7 +4,8 @@ import { useDispatch } from "react-redux";
 import { closeMenu } from "../../utils/appSlice";
 import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2, FiMoreVertical } from "react-icons/fi";
 import { FaUserTie } from "react-icons/fa6";
-import { IoVolumeHighOutline, IoVolumeMuteOutline } from "react-icons/io5";
+import { IoVolumeHighOutline, IoVolumeMuteOutline, IoArrowBackOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
   const playerRef = useRef(null);
@@ -26,6 +27,8 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
         rel: 0,
         iv_load_policy: 3,
         fs: 0,
+        disablekb: 1,
+        playsinline: 1,
       },
       events: {
         onReady: (event) => {
@@ -95,7 +98,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
         <div ref={containerRef} className="h-full w-full pointer-events-none"></div>
 
         {/* Touch/Interaction blocker to prevent native controls from showing */}
-        <div className="absolute inset-0 z-0 bg-transparent"></div>
+        <div className="absolute inset-0 z-0 bg-black/0"></div>
 
         {/* Mute/Unmute Overlay */}
         {isActive && showIcon && (
@@ -170,6 +173,7 @@ const ShortsPage = () => {
   const [isGlobalMuted, setIsGlobalMuted] = useState(true);
   const [apiReady, setApiReady] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -240,8 +244,16 @@ const ShortsPage = () => {
   return (
     <div
       ref={containerRef}
-      className="h-screen md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f]"
+      className="h-screen md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f] relative"
     >
+      {/* Mobile Back Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="fixed top-4 left-4 z-50 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white backdrop-blur-sm md:hidden"
+      >
+        <IoArrowBackOutline className="text-2xl" />
+      </button>
+
       {shorts?.map((short) => (
         <ShortItem
           key={short.id.videoId}
