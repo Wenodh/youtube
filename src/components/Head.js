@@ -110,14 +110,14 @@ const Head = () => {
 
   if (isMobileSearchVisible) {
     return (
-      <div className="flex items-center gap-2 p-4 shadow-xl md:hidden">
+      <div className="flex items-center gap-2 p-4 shadow-xl md:hidden bg-white dark:bg-[#0f0f0f] text-black dark:text-white">
         <IoArrowBackOutline
           className="cursor-pointer text-2xl"
           onClick={() => setIsMobileSearchVisible(false)}
         />
         <div className="relative flex flex-grow">
           <input
-            className="w-full rounded-full border border-gray-400 p-2 px-4 outline-none"
+            className="w-full rounded-full border border-gray-400 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 px-4 outline-none text-black dark:text-white"
             type="text"
             placeholder="Search"
             autoFocus
@@ -135,12 +135,12 @@ const Head = () => {
             }}
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-14 z-10 max-h-[50vh] w-full overflow-y-auto rounded-2xl border border-white/20 bg-white/90 p-1 shadow-2xl backdrop-blur-xl">
+            <div className="absolute top-14 z-10 max-h-[50vh] w-full overflow-y-auto rounded-2xl border border-white/20 dark:border-gray-800 bg-white/90 dark:bg-[#0f0f0f]/90 p-1 shadow-2xl backdrop-blur-xl">
               <ul>
                 {suggestions.map((suggestion) => (
                   <li
                     key={suggestion}
-                    className="flex items-center gap-4 rounded-xl px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-100/80 active:bg-gray-200/80"
+                    className="flex items-center gap-4 rounded-xl px-4 py-2.5 font-medium text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80 active:bg-gray-200/80"
                     onMouseDown={(e) => {
                       // Using onMouseDown to trigger before onBlur
                       e.preventDefault();
@@ -203,7 +203,7 @@ const Head = () => {
       <div className="relative hidden w-1/2 md:flex md:justify-center">
         <div className="flex w-full max-w-xl shadow-sm transition-shadow focus-within:shadow-md">
           <input
-            className="relative w-full rounded-l-full border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-2 pl-6 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800"
+            className="relative w-full rounded-l-full border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-2 pl-6 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 text-black dark:text-white"
             type="text"
             placeholder="Search"
             value={searchQuery}
