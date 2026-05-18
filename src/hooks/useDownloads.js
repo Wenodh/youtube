@@ -30,12 +30,17 @@ export const useDownloads = () => {
     return await downloadService.isDownloaded(videoId);
   }, []);
 
+  const getDownload = useCallback(async (videoId) => {
+    return await downloadService.getDownload(videoId);
+  }, []);
+
   return {
     downloads,
     loading,
     addDownload,
     removeDownload,
     isDownloaded,
+    getDownload,
     refreshDownloads: fetchDownloads,
   };
 };

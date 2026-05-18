@@ -30,4 +30,8 @@ export const downloadService = {
     const download = await db.downloads.get(videoId);
     return !!download;
   },
+
+  async getDownload(videoId) {
+    return await db.downloads.get(videoId);
+  },
 };

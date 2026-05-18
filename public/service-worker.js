@@ -21,8 +21,8 @@ self.addEventListener("fetch", (event) => {
   // Only cache GET requests
   if (event.request.method !== "GET") return;
 
-  // Avoid caching YouTube API calls or external video assets for now
-  if (event.request.url.includes("youtube.googleapis.com") || event.request.url.includes("i.ytimg.com")) {
+  // Avoid caching YouTube API calls for now, but allow thumbnails (i.ytimg.com)
+  if (event.request.url.includes("youtube.googleapis.com")) {
       return;
   }
 

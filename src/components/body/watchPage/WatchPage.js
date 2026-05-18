@@ -49,7 +49,7 @@ const WatchPage = () => {
   const watchLater = useSelector(store => store.app.watchLater);
   const [videoInfo, setVideoInfo] = useState([]);
   const [showComments, setShowComments] = useState(false);
-  const { addDownload, removeDownload, isDownloaded } = useDownloads();
+  const { addDownload, removeDownload, isDownloaded, getDownload } = useDownloads();
   const isOffline = useOfflineStatus();
   const [downloaded, setDownloaded] = useState(false);
 
@@ -69,15 +69,32 @@ const WatchPage = () => {
     const getVideoInfo = async () => {
       const videoId = searchParams.get("v");
       if (!videoId) return;
-      const data = await fetch(YOUTUBE_VIDEO_BY_ID + videoId);
-      const json = await data.json();
-      setVideoInfo(json?.items || []);
-      if (json?.items?.length > 0) {
-        dispatch(addToHistory(json.items[0]));
+      try {
+        const data = await fetch(YOUTUBE_VIDEO_BY_ID + videoId);
+        const json = await data.json();
+
+        if (json?.items && json.items.length > 0) {
+          setVideoInfo(json.items);
+          dispatch(addToHistory(json.items[0]));
+        } else {
+          // Fallback to local data if offline and API returns empty/fails
+          const localData = await getDownload(videoId);
+          if (localData?.fullData) {
+            setVideoInfo([localData.fullData]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching video info:", error);
+        if (isOffline) {
+          const localData = await getDownload(videoId);
+          if (localData?.fullData) {
+            setVideoInfo([localData.fullData]);
+          }
+        }
       }
     };
     getVideoInfo();
-  }, [searchParams, dispatch]);
+  }, [searchParams, dispatch, isOffline, getDownload]);
   useEffect(() => {
     dispatch(closeMenu());
   }, [dispatch]);
@@ -178,8 +195,10 @@ const WatchPage = () => {
                               className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-r-full"
                               title="Remove download"
                               onClick={async () => {
-                                await removeDownload(video.id);
-                                setDownloaded(false);
+                                if (window.confirm("Remove this video from downloads?")) {
+                                  await removeDownload(video.id);
+                                  setDownloaded(false);
+                                }
                               }}
                             >
                               <MdDeleteOutline className="text-xl text-red-500" />
