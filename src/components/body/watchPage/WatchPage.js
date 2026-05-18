@@ -10,6 +10,9 @@ import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
 import { PiShareFat } from "react-icons/pi";
 import { GoDownload } from "react-icons/go";
 import { FiMessageSquare } from "react-icons/fi";
+import { MdOutlineFileDownloadDone, MdDeleteOutline } from "react-icons/md";
+import { useDownloads } from "../../../hooks/useDownloads";
+import { useOfflineStatus } from "../../../hooks/useOfflineStatus";
 import { MdOutlineWatchLater } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 import { FaUserTie } from "react-icons/fa6";
@@ -46,20 +49,52 @@ const WatchPage = () => {
   const watchLater = useSelector(store => store.app.watchLater);
   const [videoInfo, setVideoInfo] = useState([]);
   const [showComments, setShowComments] = useState(false);
+  const { addDownload, removeDownload, isDownloaded, getDownload } = useDownloads();
+  const isOffline = useOfflineStatus();
+  const [downloaded, setDownloaded] = useState(false);
+
+  const videoId = searchParams.get("v");
+
+  useEffect(() => {
+    const checkDownloaded = async () => {
+      if (videoId) {
+        const result = await isDownloaded(videoId);
+        setDownloaded(result);
+      }
+    };
+    checkDownloaded();
+  }, [videoId, isDownloaded]);
 
   useEffect(() => {
     const getVideoInfo = async () => {
       const videoId = searchParams.get("v");
       if (!videoId) return;
-      const data = await fetch(YOUTUBE_VIDEO_BY_ID + videoId);
-      const json = await data.json();
-      setVideoInfo(json?.items || []);
-      if (json?.items?.length > 0) {
-        dispatch(addToHistory(json.items[0]));
+      try {
+        const data = await fetch(YOUTUBE_VIDEO_BY_ID + videoId);
+        const json = await data.json();
+
+        if (json?.items && json.items.length > 0) {
+          setVideoInfo(json.items);
+          dispatch(addToHistory(json.items[0]));
+        } else {
+          // Fallback to local data if offline and API returns empty/fails
+          const localData = await getDownload(videoId);
+          if (localData?.fullData) {
+            setVideoInfo([localData.fullData]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching video info:", error);
+        if (isOffline) {
+          const localData = await getDownload(videoId);
+          if (localData?.fullData) {
+            setVideoInfo([localData.fullData]);
+          }
+        }
       }
     };
     getVideoInfo();
-  }, [searchParams, dispatch]);
+  }, [searchParams, dispatch, isOffline, getDownload]);
   useEffect(() => {
     dispatch(closeMenu());
   }, [dispatch]);
@@ -83,14 +118,24 @@ const WatchPage = () => {
   return (
     <div className="grid w-full grid-cols-12 p-2 md:p-4 pb-20 md:pb-4">
       <div className="col-span-full xl:col-span-9">
-        <iframe
-          className="aspect-video w-full rounded-xl"
-          src={`https://www.youtube.com/embed/${searchParams.get("v")}`}
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        ></iframe>
+        {isOffline ? (
+          <div className="aspect-video w-full rounded-xl bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center text-center p-4">
+            <GoDownload className="text-6xl text-gray-400 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Video Unavailable Offline</h2>
+            <p className="text-gray-500 max-w-md">
+              You are currently offline. Actual video playback requires an internet connection.
+            </p>
+          </div>
+        ) : (
+          <iframe
+            className="aspect-video w-full rounded-xl"
+            src={`https://www.youtube.com/embed/${searchParams.get("v")}`}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          ></iframe>
+        )}
         {videoInfo?.map((video) => {
           return (
             <React.Fragment key={video.id}>
@@ -140,9 +185,37 @@ const WatchPage = () => {
                       >
                         <MdOutlineWatchLater className="text-xl" /> {watchLater.some(v => v.id === video.id) ? 'Saved' : 'Watch Later'}
                       </button>
-                      <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
-                        <GoDownload className="text-xl" /> Download
-                      </button>
+                      <div className="relative">
+                        {downloaded ? (
+                          <div className="flex shrink-0 items-center rounded-full bg-gray-100 dark:bg-gray-800">
+                            <div className="flex items-center gap-2 px-3 py-2 text-blue-500 rounded-l-full border-r border-gray-300 dark:border-gray-700">
+                              <MdOutlineFileDownloadDone className="text-xl" /> Downloaded
+                            </div>
+                            <button
+                              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-r-full"
+                              title="Remove download"
+                              onClick={async () => {
+                                if (window.confirm("Remove this video from downloads?")) {
+                                  await removeDownload(video.id);
+                                  setDownloaded(false);
+                                }
+                              }}
+                            >
+                              <MdDeleteOutline className="text-xl text-red-500" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            onClick={async () => {
+                              await addDownload(video);
+                              setDownloaded(true);
+                            }}
+                          >
+                            <GoDownload className="text-xl" /> Download
+                          </button>
+                        )}
+                      </div>
                       <button className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                         <BsThreeDots />
                       </button>

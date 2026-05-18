@@ -1,4 +1,5 @@
 export const formatViewCount = (viewCount) => {
+    if (viewCount === undefined || viewCount === null) return "0";
     if (viewCount >= 1e6) return `${(viewCount / 1e6).toFixed(1)}M`;
     if (viewCount >= 1e3) return `${(viewCount / 1e3).toFixed(1)}K`;
     return viewCount.toString();

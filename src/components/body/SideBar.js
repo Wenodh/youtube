@@ -14,6 +14,7 @@ import {
   MdOutlineWatchLater,
   MdOutlineLiveTv,
   MdOutlineSportsSoccer,
+  MdOutlineFileDownload,
 } from "react-icons/md";
 import { GrHistory } from "react-icons/gr";
 import { BsPlayBtn } from "react-icons/bs";
@@ -61,6 +62,7 @@ const SideBar = () => {
             {menuItem("/underconstruction", GoVideo, "Your Videos")}
             {menuItem("/watchlater", MdOutlineWatchLater, "Watch Later")}
             {menuItem("/liked", AiOutlineLike, "Liked Videos")}
+            {menuItem("/downloads", MdOutlineFileDownload, "Downloads")}
           </ul>
           <hr className="my-3 border-gray-200 dark:border-gray-800" />
           <h3 className="mb-2 ml-2 text-sm font-bold">Explore</h3>
