@@ -11,6 +11,8 @@ import ChannelPage from "./components/body/channelPage/ChannelPage.js";
 import UnderConstruction from "./components/UnderConstruction.js";
 import ShortsPage from "./components/body/ShortsPage.js";
 import Library from "./components/body/Library.js";
+import OfflineIndicator from "./components/body/OfflineIndicator.js";
+import Downloads from "./components/body/Downloads.js";
 /**
  *
  * Head
@@ -28,6 +30,7 @@ const appRouter = createBrowserRouter([
     path: "/",
     element: (
       <>
+        <OfflineIndicator />
         <Head />
         <Body />
       </>
@@ -61,6 +64,10 @@ const appRouter = createBrowserRouter([
       {
         path: "liked",
         element: <Library type="liked" />,
+      },
+      {
+        path: "downloads",
+        element: <Downloads />,
       },
       {
         path: "watch",

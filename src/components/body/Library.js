@@ -2,6 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import VideoCard from "./VideoCard";
+import { useDownloads } from "../../hooks/useDownloads";
 import { clearHistory } from "../../utils/appSlice";
 
 const Library = ({ type }) => {
@@ -9,6 +10,7 @@ const Library = ({ type }) => {
   const history = useSelector((store) => store.app.history);
   const watchLater = useSelector((store) => store.app.watchLater);
   const likedVideos = useSelector((store) => store.app.likedVideos);
+  const { downloads } = useDownloads();
 
   let displayVideos = [];
   let title = "";
@@ -61,6 +63,19 @@ const Library = ({ type }) => {
             {likedVideos.slice(0, 5).map(v => (
               <Link key={v.id?.videoId || v.id} to={"/watch?v=" + (v.id?.videoId || v.id)}>
                 <VideoCard info={v} />
+              </Link>
+            ))}
+          </div>
+        </section>
+        <section className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">Downloads</h2>
+            <Link to="/downloads" className="text-blue-500 text-sm font-bold">See all</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {downloads.slice(0, 5).map(v => (
+              <Link key={v.id?.videoId || v.id} to={"/watch?v=" + (v.id?.videoId || v.id)}>
+                <VideoCard info={v.fullData} />
               </Link>
             ))}
           </div>
