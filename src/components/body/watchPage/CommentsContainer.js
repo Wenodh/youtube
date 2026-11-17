@@ -34,9 +34,11 @@ const Comment = ({ data }) => {
             <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
               {authorDisplayName}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {formatDistanceToNow(new Date(publishedAt))} ago
-            </span>
+            {publishedAt && !Number.isNaN(Date.parse(publishedAt)) && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {formatDistanceToNow(new Date(publishedAt))} ago
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-800 dark:text-gray-300">{snippet?.textOriginal || getPlainCommentText(textDisplay)}</p>
           <div className="mt-1 flex items-center gap-4">
@@ -81,7 +83,7 @@ const CommentsContainer = ({ videoId, isVisible }) => {
       getComments();
       setVisibleCount(10);
     }
-  }, [videoId, getComments]);
+  }, [videoId, isVisible, getComments]);
 
   if (!isVisible) return null;
 

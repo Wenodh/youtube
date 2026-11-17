@@ -9,9 +9,13 @@ const store = configureStore({
   },
 });
 
+let previousAppState = store.getState().app;
+
 store.subscribe(() => {
-  if (typeof localStorage === "undefined") return;
   const { app } = store.getState();
+  if (app === previousAppState) return;
+  previousAppState = app;
+  if (typeof localStorage === "undefined") return;
   try {
     localStorage.setItem("darkMode", String(app.isDarkMode));
     localStorage.setItem("watchLater", JSON.stringify(app.watchLater));

@@ -32,6 +32,10 @@ const Head = () => {
   const [searchHistory, setSearchHistory] = useState(readSearchHistory);
   const suggestionRequestId = useRef(0);
 
+  useEffect(() => {
+    try { localStorage.setItem("searchHistory", JSON.stringify(searchHistory)); } catch { /* Storage may be unavailable. */ }
+  }, [searchHistory]);
+
   const parseJwt = useCallback((token) => {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -125,7 +129,6 @@ const Head = () => {
     if (!normalizedQuery) return;
     setSearchHistory((previous) => {
       const nextHistory = [normalizedQuery, ...previous.filter((item) => item !== normalizedQuery)].slice(0, 10);
-      try { localStorage.setItem("searchHistory", JSON.stringify(nextHistory)); } catch { /* Storage may be unavailable. */ }
       return nextHistory;
     });
   };
@@ -189,7 +192,6 @@ const Head = () => {
     e.stopPropagation();
     setSearchHistory(prev => {
       const newHist = prev.filter(h => h !== q);
-      try { localStorage.setItem("searchHistory", JSON.stringify(newHist)); } catch { /* Storage may be unavailable. */ }
       return newHist;
     });
   };
