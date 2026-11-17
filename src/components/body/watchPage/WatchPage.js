@@ -116,7 +116,7 @@ const WatchPage = () => {
       } finally { if (!controller.signal.aborted) setIsLoadingSuggestions(false); }
     };
     loadCandidates(); return () => controller.abort();
-  }, [video?.id]);
+  }, [video]);
 
   useEffect(() => {
     if (!candidateVideos.length || candidateVideoId !== video?.id) { setSuggestionVideos([]); return; }
