@@ -53,7 +53,6 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
       disposed = true;
       playerRef.current?.destroy();
       playerRef.current = null;
-      setIsPlayerReady(false);
     };
     // Player instance is tied to this video ID; active/mute state is handled by separate effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -260,12 +259,10 @@ const ShortsPage = () => {
     };
 
     const callback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const videoId = entry.target.getAttribute("data-video-id");
-          setActiveVideoId(videoId);
-        }
-      });
+      const mostVisible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (mostVisible) setActiveVideoId(mostVisible.target.getAttribute("data-video-id"));
     };
 
     const observer = new IntersectionObserver(callback, options);
