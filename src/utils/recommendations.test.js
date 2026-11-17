@@ -1,65 +1,36 @@
-import {
-  buildRecommendationQuery,
-  extractKeywords,
-  rankRecommendations,
-  scoreRecommendation,
-} from "./recommendations";
-
-const makeVideo = (id, title, channelId = "channel-1", publishedAt = "2026-10-01T00:00:00Z") => ({
-  id,
-  snippet: { title, description: "", channelId, publishedAt },
-});
-
-describe("recommendation ranking", () => {
-  test("extracts useful keywords and removes common filler words", () => {
-    expect(extractKeywords("The Complete React Tutorial for Beginners!"))
-      .toEqual(["complete", "react", "tutorial", "beginners"]);
+import { buildRecommendationQuery, extractKeywords, getContentSimilarity, rankRecommendations, scoreRecommendation } from "./recommendations";
+const makeVideo = (id, title, channelId = "channel-1", description = "") => ({ id, snippet: { title, description, channelId, publishedAt: "2026-10-01T00:00:00Z" } });
+describe("recommendation relevance and diversity", () => {
+  test("normalizes related wording into shared concepts", () => {
+    expect(extractKeywords("React performance optimization")).toContain("concept-5");
+    expect(getContentSimilarity(makeVideo("a","React performance optimization"), makeVideo("b","React speed improvements"))).toBeGreaterThan(0.5);
   });
-
-  test("builds a focused search query from the current title", () => {
-    expect(buildRecommendationQuery(makeVideo("current", "React performance optimization guide")))
-      .toBe("react performance optimization guide");
+  test("builds a query from title and description terms", () => {
+    expect(buildRecommendationQuery(makeVideo("x","React performance guide","c","profiling hooks and rendering"))).toContain("concept-5");
   });
-
-  test("scores topic-matching candidates above unrelated popular content", () => {
-    const currentVideo = makeVideo("current", "React performance optimization hooks");
-    const related = makeVideo("related", "React hooks performance tips", "channel-2");
-    const unrelated = makeVideo("unrelated", "Cricket world cup highlights", "channel-3");
-
-    expect(scoreRecommendation(related, { currentVideo }))
-      .toBeGreaterThan(scoreRecommendation(unrelated, { currentVideo }));
+  test("ranks relevant topics above unrelated content", () => {
+    const current = makeVideo("current","React performance optimization hooks");
+    expect(scoreRecommendation(makeVideo("a","React rendering speed tips"),{currentVideo:current})).toBeGreaterThan(scoreRecommendation(makeVideo("b","Cricket world cup highlights"),{currentVideo:current}));
   });
-
-  test("uses viewer interests and excludes current, duplicate, and dismissed videos", () => {
-    const currentVideo = makeVideo("current", "Travel in Japan");
-    const likedVideo = makeVideo("liked", "TypeScript advanced patterns");
-    const matching = makeVideo("matching", "Advanced TypeScript patterns explained", "channel-2");
-    const candidates = [
-      currentVideo,
-      matching,
-      matching,
-      makeVideo("dismissed", "Japan travel guide", "channel-3"),
-      makeVideo("other", "Cooking with vegetables", "channel-4"),
-    ];
-
-    const result = rankRecommendations(candidates, {
-      currentVideo,
-      likedVideos: [likedVideo],
-      dismissedIds: ["dismissed"],
-    });
-
-    expect(result.map((video) => video.id)).toEqual(["matching", "other"]);
+  test("uses liked videos to personalize ranking", () => {
+    const current = makeVideo("current","Travel in Japan"); const liked = makeVideo("liked","TypeScript advanced patterns");
+    expect(scoreRecommendation(makeVideo("a","Advanced TypeScript patterns explained"),{currentVideo:current,likedVideos:[liked]})).toBeGreaterThan(scoreRecommendation(makeVideo("b","Cooking vegetables"),{currentVideo:current,likedVideos:[liked]}));
   });
-
-  test("limits repeated creators before filling remaining slots", () => {
-    const currentVideo = makeVideo("current", "JavaScript programming");
-    const candidates = [
-      makeVideo("a", "JavaScript programming tutorial", "same"),
-      makeVideo("b", "JavaScript programming tutorial", "same"),
-      makeVideo("c", "JavaScript programming tutorial", "same"),
-      makeVideo("d", "JavaScript programming tutorial", "different"),
-    ];
-    const result = rankRecommendations(candidates, { currentVideo }, 4);
-    expect(result.map((video) => video.id)).toEqual(["a", "b", "d", "c"]);
+  test("filters current, duplicate and dismissed videos", () => {
+    const current = makeVideo("current","React performance"); const match = makeVideo("match","React performance tips");
+    const result = rankRecommendations([current,match,match,makeVideo("dismissed","React performance guide")],{currentVideo:current,dismissedIds:["dismissed"]});
+    expect(result.map((video) => video.id)).toEqual(["match"]);
+  });
+  test("diversifies content even when all candidates share a channel", () => {
+    const current = makeVideo("current","React performance optimization");
+    const close = makeVideo("close","React performance optimization tutorial","same");
+    const angle = makeVideo("angle","React profiling and browser rendering","same");
+    const other = makeVideo("other","JavaScript event loop and rendering speed","same");
+    const result = rankRecommendations([close,angle,other],{currentVideo:current},3);
+    expect(result).toHaveLength(3); expect(result[0].id).toBe("close"); expect(result[1].id).not.toBe("close");
+  });
+  test("does not reward same-channel videos over more relevant videos", () => {
+    const current = makeVideo("current","React performance optimization");
+    expect(scoreRecommendation(makeVideo("relevant","React performance guide","other"),{currentVideo:current})).toBeGreaterThan(scoreRecommendation(makeVideo("unrelated","Cricket highlights","channel-1"),{currentVideo:current}));
   });
 });

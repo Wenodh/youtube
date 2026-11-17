@@ -50,6 +50,7 @@ const WatchPage = () => {
   const [error, setError] = useState("");
   const [showComments, setShowComments] = useState(shouldOpenComments);
   const [suggestionVideos, setSuggestionVideos] = useState([]);
+  const [candidateVideos, setCandidateVideos] = useState([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
   const [dismissedIds, setDismissedIds] = useState(getDismissedRecommendations);
@@ -87,31 +88,43 @@ const WatchPage = () => {
     return () => controller.abort();
   }, [videoId, dispatch]);
 
+  // Fetch candidates only when the current video changes. Preference updates re-rank
+  // this cached pool locally, avoiding another quota-consuming YouTube Search request.
   useEffect(() => {
-    if (!video?.id) return undefined;
+    if (!video?.id) {
+      setCandidateVideos([]);
+      setSuggestionVideos([]);
+      return undefined;
+    }
     const controller = new AbortController();
-    const loadSuggestions = async () => {
+    const loadCandidates = async () => {
       setIsLoadingSuggestions(true);
       setSuggestionError("");
-      setSuggestionVideos([]);
+      setCandidateVideos([]);
       try {
         const url = new URL(YOUTUBE_RELATED_SEARCH_API);
         url.searchParams.set("q", buildRecommendationQuery(video));
         const data = await fetchYouTubeJson(url.toString(), { signal: controller.signal, ttlMs: 600_000 });
-        if (!controller.signal.aborted) {
-          setSuggestionVideos(rankRecommendations(data.items || [], {
-            currentVideo: video, history, likedVideos, dismissedIds,
-          }));
-        }
+        if (!controller.signal.aborted) setCandidateVideos(data.items || []);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setSuggestionError(requestError.message || "Unable to load relevant recommendations.");
       } finally {
         if (!controller.signal.aborted) setIsLoadingSuggestions(false);
       }
     };
-    loadSuggestions();
+    loadCandidates();
     return () => controller.abort();
-  }, [video, history, likedVideos, dismissedIds]);
+  }, [video?.id]);
+
+  useEffect(() => {
+    if (!candidateVideos.length) {
+      setSuggestionVideos([]);
+      return;
+    }
+    setSuggestionVideos(rankRecommendations(candidateVideos, {
+      currentVideo: video, history, likedVideos, dismissedIds,
+    }));
+  }, [candidateVideos, video, history, likedVideos, dismissedIds]);
 
   const handleDismissRecommendation = (recommendationId) => {
     setDismissedIds(dismissRecommendation(recommendationId));
@@ -178,7 +191,7 @@ const WatchPage = () => {
       <aside className="col-span-full p-2 xl:col-span-3">
         {video?.snippet?.liveBroadcastContent === "live" && <div className="mb-4 hidden xl:block"><LiveChat /></div>}
         <h2 className="mb-1 font-bold">Related to this video</h2>
-        <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">Ranked by topic relevance and your local watch/like history</p>
+        <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">Topic-aware, personalized picks with duplicate-content filtering</p>
         {isLoadingSuggestions && <p className="py-4 text-sm text-gray-500" role="status">Finding relevant videos…</p>}
         {suggestionError && <p className="py-3 text-sm text-red-600 dark:text-red-400" role="alert">{suggestionError}</p>}
         {!isLoadingSuggestions && !suggestionError && suggestionVideos.length === 0 && (
