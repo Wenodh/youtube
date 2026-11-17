@@ -6,6 +6,7 @@ import {
   YOUTUBE_CHANNELS_API,
 } from "../../utils/constants";
 import VideoCard from "./VideoCard";
+import { fetchYouTubeJson } from "../../utils/youtubeApi";
 
 const getVideoId = (video) => video?.id?.videoId || video?.id;
 
@@ -42,9 +43,7 @@ const VideoContainer = () => {
       if (categoryId) url.searchParams.set("videoCategoryId", categoryId);
       if (!reset && nextPageToken) url.searchParams.set("pageToken", nextPageToken);
 
-      const response = await fetch(url.toString(), { signal: controller.signal });
-      const data = await response.json();
-      if (!response.ok || data.error) throw new Error(data.error?.message || "Unable to load videos.");
+      const data = await fetchYouTubeJson(url.toString(), { signal: controller.signal, ttlMs: query ? 60_000 : 300_000 });
       if (controller.signal.aborted) return;
 
       const incoming = Array.isArray(data.items) ? data.items : [];
@@ -96,9 +95,7 @@ const VideoContainer = () => {
       try {
         for (let index = 0; index < missingIds.length; index += 50) {
           const batch = missingIds.slice(index, index + 50);
-          const response = await fetch(YOUTUBE_CHANNELS_API + batch.join(","), { signal: controller.signal });
-          const data = await response.json();
-          if (!response.ok || data.error) throw new Error(data.error?.message || "Channel lookup failed.");
+          const data = await fetchYouTubeJson(YOUTUBE_CHANNELS_API + batch.join(","), { signal: controller.signal, ttlMs: 900_000 });
           const logos = Object.fromEntries(batch.map((id) => [id, null]));
           (data.items || []).forEach((channel) => {
             const url = channel.snippet?.thumbnails?.default?.url;

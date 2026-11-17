@@ -6,6 +6,7 @@ import CommentsContainer from "./CommentsContainer";
 import LiveChat from "./LiveChat";
 import { YOUTUBE_VIDEOS_API, YOUTUBE_VIDEO_BY_ID } from "../../../utils/constants";
 import { formatDate, formatViewCount } from "../../../utils/helperFunctions";
+import { fetchYouTubeJson } from "../../../utils/youtubeApi";
 import { FiThumbsUp, FiMessageSquare } from "react-icons/fi";
 import { PiShareFat } from "react-icons/pi";
 import { MdOutlineWatchLater } from "react-icons/md";
@@ -65,9 +66,7 @@ const WatchPage = () => {
       setError("");
       setVideo(null);
       try {
-        const response = await fetch(YOUTUBE_VIDEO_BY_ID + encodeURIComponent(videoId), { signal: controller.signal });
-        const data = await response.json();
-        if (!response.ok || data.error) throw new Error(data.error?.message || "Unable to load this video.");
+        const data = await fetchYouTubeJson(YOUTUBE_VIDEO_BY_ID + encodeURIComponent(videoId), { signal: controller.signal, ttlMs: 300_000 });
         const nextVideo = data.items?.[0];
         if (!nextVideo) throw new Error("This video is unavailable or may have been removed.");
         if (!controller.signal.aborted) {
@@ -88,9 +87,7 @@ const WatchPage = () => {
     const controller = new AbortController();
     const loadSuggestions = async () => {
       try {
-        const response = await fetch(YOUTUBE_VIDEOS_API, { signal: controller.signal });
-        const data = await response.json();
-        if (!response.ok || data.error) throw new Error(data.error?.message || "Unable to load recommendations.");
+        const data = await fetchYouTubeJson(YOUTUBE_VIDEOS_API, { signal: controller.signal, ttlMs: 300_000 });
         if (!controller.signal.aborted) setSuggestionVideos(data.items || []);
       } catch (requestError) {
         if (requestError.name !== "AbortError") console.error("Error fetching recommendations:", requestError);
@@ -174,7 +171,7 @@ const WatchPage = () => {
         )}
       </div>
       <aside className="col-span-full p-2 xl:col-span-3">
-        <div className="mb-4 hidden xl:block"><LiveChat /></div>
+        {video?.snippet?.liveBroadcastContent === "live" && <div className="mb-4 hidden xl:block"><LiveChat /></div>}
         <h2 className="mb-2 font-bold">Recommendations</h2>
         <div className="flex flex-col gap-2">
           {suggestionVideos.filter((item) => getVideoId(item) !== videoId).map((item) => {

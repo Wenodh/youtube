@@ -1,17 +1,22 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { YOUTUBE_SHORTS_API } from "../../utils/constants";
-import { useDispatch } from "react-redux";
-import { closeMenu } from "../../utils/appSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { closeMenu, toggleLikeVideo } from "../../utils/appSlice";
+import { fetchYouTubeJson } from "../../utils/youtubeApi";
 import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2, FiMoreVertical } from "react-icons/fi";
 import { FaUserTie } from "react-icons/fa6";
 import { IoVolumeHighOutline, IoVolumeMuteOutline, IoArrowBackOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
+const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute, onOpenComments }) => {
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
+  const dispatch = useDispatch();
+  const likedVideos = useSelector((store) => store.app.likedVideos);
+  const isLiked = likedVideos.some((item) => (item.id?.videoId || item.id) === short.id.videoId);
 
   useEffect(() => {
     if (!isActive) {
@@ -129,27 +134,23 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
         {/* Action Buttons Overlay */}
         <div className="absolute right-2 bottom-20 flex flex-col items-center gap-6 text-white z-10" onClick={handleActionClick}>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiThumbsUp className="text-2xl" />
-            </div>
-            <span className="text-xs mt-1">Like</span>
+            <button type="button" aria-pressed={Boolean(isLiked)} onClick={() => dispatch(toggleLikeVideo(short))} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiThumbsUp className={`text-2xl ${isLiked ? "fill-current text-blue-300" : ""}`} /></button>
+            <span className="text-xs mt-1">{isLiked ? "Liked locally" : "Like"}</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiThumbsDown className="text-2xl" />
-            </div>
-            <span className="text-xs mt-1">Dislike</span>
+            <button type="button" aria-pressed={isDisliked} onClick={() => setIsDisliked((value) => !value)} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiThumbsDown className={`text-2xl ${isDisliked ? "fill-current text-blue-300" : ""}`} /></button>
+            <span className="text-xs mt-1">{isDisliked ? "Disliked locally" : "Dislike"}</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiMessageSquare className="text-2xl" />
-            </div>
-            <span className="text-xs mt-1">1.2K</span>
+            <button type="button" aria-label="Open comments" onClick={() => onOpenComments(short.id.videoId)} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiMessageSquare className="text-2xl" /></button>
+            <span className="text-xs mt-1">Comments</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiShare2 className="text-2xl" />
-            </div>
+            <button type="button" aria-label="Share Short" onClick={async () => {
+              const url = `https://www.youtube.com/shorts/${short.id.videoId}`;
+              try { if (navigator.share) await navigator.share({ title: short.snippet?.title || "YouTube Short", url }); else await navigator.clipboard?.writeText(url); }
+              catch (error) { if (error.name !== "AbortError") console.error("Unable to share Short:", error); }
+            }} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiShare2 className="text-2xl" /></button>
             <span className="text-xs mt-1">Share</span>
           </div>
           <div className="flex flex-col items-center">
@@ -166,9 +167,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
               <FaUserTie className="text-xl" />
             </div>
             <span className="font-bold text-sm">@{(short.snippet?.channelTitle || "youtube").replace(/\s+/g, "").toLowerCase()}</span>
-            <button className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold ml-2">
-              Subscribe
-            </button>
+            <button type="button" onClick={() => window.open(`https://www.youtube.com/channel/${encodeURIComponent(short.snippet?.channelId || "")}`, "_blank", "noopener,noreferrer")} className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold ml-2">View channel</button>
           </div>
           <h3 className="line-clamp-2 text-sm leading-snug pr-12">
             {short.snippet.title}
@@ -229,9 +228,7 @@ const ShortsPage = () => {
   const getShorts = useCallback(async (signal) => {
     try {
       setShortsError("");
-      const res = await fetch(YOUTUBE_SHORTS_API, { signal });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error?.message || "Unable to load Shorts.");
+      const data = await fetchYouTubeJson(YOUTUBE_SHORTS_API, { signal, ttlMs: 300_000 });
       const items = (data.items || []).filter((item) => item?.id?.videoId);
       if (!signal?.aborted) {
         setShorts(items);
@@ -303,6 +300,7 @@ const ShortsPage = () => {
           isActive={activeVideoId === short.id.videoId}
           isGlobalMuted={isGlobalMuted}
           onToggleMute={toggleMute}
+          onOpenComments={(id) => navigate(`/watch?v=${encodeURIComponent(id)}`)}
         />
       ))}
     </div>
