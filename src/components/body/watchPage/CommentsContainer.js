@@ -38,10 +38,7 @@ const Comment = ({ data }) => {
               {formatDistanceToNow(new Date(publishedAt))} ago
             </span>
           </div>
-          <p
-            className="text-sm text-gray-800 dark:text-gray-300"
-            dangerouslySetInnerHTML={{ __html: textDisplay }}
-          />
+          <p className="text-sm text-gray-800 dark:text-gray-300">{snippet?.textOriginal || getPlainCommentText(textDisplay)}</p>
           <div className="mt-1 flex items-center gap-4">
             <div className="flex items-center gap-1">
               <FiThumbsUp className="cursor-pointer text-sm dark:text-gray-400" />
