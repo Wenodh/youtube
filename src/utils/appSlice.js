@@ -13,6 +13,8 @@ const readStoredBoolean = (key) => {
   try { return localStorage.getItem(key) === "true"; } catch { return false; }
 };
 
+const getVideoId = (video) => video?.id?.videoId || video?.id;
+
 const appSlice = createSlice({
   name: "app",
   initialState: {
@@ -41,26 +43,28 @@ const appSlice = createSlice({
 
     },
     addToWatchLater: (state, action) => {
-      const exists = state.watchLater.find(v => v.id === action.payload.id);
+      const videoId = getVideoId(action.payload);
+      const exists = state.watchLater.some((video) => getVideoId(video) === videoId);
       if (exists) {
-        state.watchLater = state.watchLater.filter(v => v.id !== action.payload.id);
+        state.watchLater = state.watchLater.filter((video) => getVideoId(video) !== videoId);
       } else {
         state.watchLater.push(action.payload);
       }
 
     },
     toggleLikeVideo: (state, action) => {
-      const exists = state.likedVideos.find(v => v.id === (action.payload.id?.videoId || action.payload.id));
+      const videoId = getVideoId(action.payload);
+      const exists = state.likedVideos.some((video) => getVideoId(video) === videoId);
       if (exists) {
-        state.likedVideos = state.likedVideos.filter(v => (v.id?.videoId || v.id) !== (action.payload.id?.videoId || action.payload.id));
+        state.likedVideos = state.likedVideos.filter((video) => getVideoId(video) !== videoId);
       } else {
         state.likedVideos.push(action.payload);
       }
 
     },
     addToHistory: (state, action) => {
-      const videoId = action.payload.id?.videoId || action.payload.id;
-      state.history = [action.payload, ...state.history.filter(v => (v.id?.videoId || v.id) !== videoId)].slice(0, 50);
+      const videoId = getVideoId(action.payload);
+      state.history = [action.payload, ...state.history.filter(v => getVideoId(v) !== videoId)].slice(0, 50);
 
     },
     clearHistory: (state) => {

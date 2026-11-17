@@ -6,6 +6,7 @@ import { FaUserTie } from "react-icons/fa6";
 import { YOUTUBE_CHANNEL_BY_ID, YOUTUBE_CHANNEL_VIDEOS_API } from "../../../utils/constants";
 import { formatViewCount } from "../../../utils/helperFunctions";
 import VideoCard from "../VideoCard";
+import { fetchYouTubeJson } from "../../../utils/youtubeApi";
 
 const ChannelPage = () => {
   const dispatch = useDispatch();
@@ -30,13 +31,10 @@ const ChannelPage = () => {
       setIsLoading(true);
       setError("");
       try {
-        const [channelResponse, videosResponse] = await Promise.all([
-          fetch(YOUTUBE_CHANNEL_BY_ID + encodeURIComponent(channelId), { signal: controller.signal }),
-          fetch(YOUTUBE_CHANNEL_VIDEOS_API + encodeURIComponent(channelId), { signal: controller.signal }),
+        const [channelData, videosData] = await Promise.all([
+          fetchYouTubeJson(YOUTUBE_CHANNEL_BY_ID + encodeURIComponent(channelId), { signal: controller.signal, ttlMs: 900_000 }),
+          fetchYouTubeJson(YOUTUBE_CHANNEL_VIDEOS_API + encodeURIComponent(channelId), { signal: controller.signal, ttlMs: 300_000 }),
         ]);
-        const [channelData, videosData] = await Promise.all([channelResponse.json(), videosResponse.json()]);
-        if (!channelResponse.ok || channelData.error) throw new Error(channelData.error?.message || "Unable to load channel.");
-        if (!videosResponse.ok || videosData.error) throw new Error(videosData.error?.message || "Unable to load channel videos.");
         if (!controller.signal.aborted) {
           setChannel(channelData.items?.[0] || null);
           setVideos(videosData.items || []);

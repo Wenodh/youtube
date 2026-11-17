@@ -29,7 +29,7 @@ Successful Data API GET responses are cached in memory for short periods to redu
 
 ## Authentication limitations
 
-Google Identity Services currently supplies a client-side profile preview only. This project does not verify credentials on a backend, create a server session, or obtain YouTube OAuth scopes. The profile display is not proof of a server-authenticated user. In-app likes are local preferences; they do not modify a YouTube account. Subscribe and live-chat actions are not connected. The Live Chat panel now explains this rather than generating fake messages.
+Google Identity Services currently supplies a client-side profile preview only. This project does not verify credentials on a backend, create a server session, or obtain YouTube OAuth scopes. The profile display is not proof of a server-authenticated user. In-app likes/dislikes are local preferences; they do not modify a YouTube account. Subscribe and live-chat actions are not connected. The Shorts feed currently uses a short-duration search query; the public Data API does not provide a dedicated Shorts-only feed filter, so results are not guaranteed to be Shorts. The Live Chat panel now explains this rather than generating fake messages.
 
 Real YouTube account actions require a backend OAuth authorization-code flow with state/PKCE, server-side token validation, the minimum required YouTube scopes, and secure server-side refresh-token storage. Never put OAuth client secrets or refresh tokens in React environment variables.
 

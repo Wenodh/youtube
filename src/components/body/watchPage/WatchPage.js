@@ -39,6 +39,7 @@ const VideoDescription = ({ video }) => {
 
 const WatchPage = () => {
   const [searchParams] = useSearchParams();
+  const shouldOpenComments = searchParams.get("comments") === "1";
   const videoId = searchParams.get("v") || "";
   const dispatch = useDispatch();
   const likedVideos = useSelector((store) => store.app.likedVideos);
@@ -46,7 +47,7 @@ const WatchPage = () => {
   const [video, setVideo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(shouldOpenComments);
   const [suggestionVideos, setSuggestionVideos] = useState([]);
 
   useEffect(() => {

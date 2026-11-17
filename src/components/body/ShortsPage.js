@@ -3,7 +3,7 @@ import { YOUTUBE_SHORTS_API } from "../../utils/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { closeMenu, toggleLikeVideo } from "../../utils/appSlice";
 import { fetchYouTubeJson } from "../../utils/youtubeApi";
-import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2, FiMoreVertical } from "react-icons/fi";
+import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2 } from "react-icons/fi";
 import { FaUserTie } from "react-icons/fa6";
 import { IoVolumeHighOutline, IoVolumeMuteOutline, IoArrowBackOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -300,7 +300,7 @@ const ShortsPage = () => {
           isActive={activeVideoId === short.id.videoId}
           isGlobalMuted={isGlobalMuted}
           onToggleMute={toggleMute}
-          onOpenComments={(id) => navigate(`/watch?v=${encodeURIComponent(id)}`)}
+          onOpenComments={(id) => navigate(`/watch?v=${encodeURIComponent(id)}&comments=1`)}
         />
       ))}
     </div>
