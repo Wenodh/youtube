@@ -34,8 +34,9 @@ const Comment = ({ data }) => {
           </div>
           <p
             className="text-sm text-gray-800 dark:text-gray-300"
-            dangerouslySetInnerHTML={{ __html: textDisplay }}
-          />
+            >
+            {snippet?.textOriginal || textDisplay}
+          </p>
           <div className="mt-1 flex items-center gap-4">
             <div className="flex items-center gap-1">
               <FiThumbsUp className="cursor-pointer text-sm dark:text-gray-400" />
@@ -62,22 +63,34 @@ const Comment = ({ data }) => {
 const CommentsContainer = ({ videoId, isVisible }) => {
   const [comments, setComments] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const getComments = useCallback(async () => {
+  const getComments = useCallback(async (signal) => {
+    setIsLoading(true);
+    setError("");
     try {
-      const response = await fetch(YOUTUBE_COMMENT_THREADS_API + videoId);
+      const response = await fetch(YOUTUBE_COMMENT_THREADS_API + encodeURIComponent(videoId), { signal });
       const data = await response.json();
-      setComments(data.items || []);
-    } catch (error) {
-      console.error("Error fetching comments:", error);
+      if (!response.ok || data.error) throw new Error(data.error?.message || "Unable to load comments.");
+      setComments(Array.isArray(data.items) ? data.items : []);
+    } catch (requestError) {
+      if (requestError.name !== "AbortError") {
+        setError(requestError.message || "Unable to load comments.");
+        console.error("Error fetching comments:", requestError);
+      }
+    } finally {
+      if (!signal?.aborted) setIsLoading(false);
     }
   }, [videoId]);
 
   useEffect(() => {
-    if (videoId) {
-      getComments();
-      setVisibleCount(10);
-    }
+    if (!videoId) return undefined;
+    const controller = new AbortController();
+    setComments([]);
+    setVisibleCount(10);
+    getComments(controller.signal);
+    return () => controller.abort();
   }, [videoId, getComments]);
 
   if (!isVisible) return null;
@@ -85,6 +98,9 @@ const CommentsContainer = ({ videoId, isVisible }) => {
   return (
     <div className="mt-6">
       <h2 className="text-xl font-bold mb-4">Comments</h2>
+      {isLoading && <p className="py-4 text-sm text-gray-500">Loading comments…</p>}
+      {error && <p className="py-4 text-sm text-red-500" role="alert">{error}</p>}
+      {!isLoading && !error && comments.length === 0 && <p className="py-4 text-sm text-gray-500">No comments available.</p>}
       <div className="flex flex-col">
         {comments.slice(0, visibleCount).map((comment) => (
           <Comment key={comment.id} data={comment} />
