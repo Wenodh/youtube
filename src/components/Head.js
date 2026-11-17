@@ -59,23 +59,35 @@ const Head = () => {
   );
 
   useEffect(() => {
-    /* global google */
-    if (window.google) {
-      google.accounts.id.initialize({
-        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+    if (user) return undefined;
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    let disposed = false;
+
+    const initializeGoogleSignIn = () => {
+      if (disposed || !clientId || !window.google?.accounts?.id) return;
+      const signInDiv = document.getElementById("signInDiv");
+      if (!signInDiv) return;
+      signInDiv.replaceChildren();
+      window.google.accounts.id.initialize({
+        client_id: clientId,
         callback: handleLoginCallback,
       });
+      window.google.accounts.id.renderButton(signInDiv, {
+        theme: "outline",
+        size: "medium",
+        type: "icon",
+        shape: "circle",
+      });
+    };
 
-      const signInDiv = document.getElementById("signInDiv");
-      if (signInDiv) {
-        google.accounts.id.renderButton(signInDiv, {
-          theme: "outline",
-          size: "medium",
-          type: "icon",
-          shape: "circle",
-        });
-      }
-    }
+    if (window.google?.accounts?.id) initializeGoogleSignIn();
+    else script?.addEventListener("load", initializeGoogleSignIn);
+
+    return () => {
+      disposed = true;
+      script?.removeEventListener("load", initializeGoogleSignIn);
+    };
   }, [user, handleLoginCallback]);
 
   const getSearchSuggestions = useCallback(async () => {
@@ -307,9 +319,9 @@ const Head = () => {
             <img
               className="h-8 w-8 rounded-full cursor-pointer"
               src={user.picture}
-              alt="user"
+              alt="Google profile preview"
               onClick={() => dispatch(logout())}
-              title="Click to logout"
+              title="Google profile preview only — click to clear it; YouTube account actions are not connected"
             />
           </div>
         ) : (
