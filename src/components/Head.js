@@ -167,6 +167,7 @@ const Head = () => {
                       e.preventDefault();
                       setSearchQuery(suggestion);
                       navigate(`/?q=${encodeURIComponent(suggestion)}`);
+                      addToHistory(suggestion);
                       setShowSuggestions(false);
                       setIsMobileSearchVisible(false);
                     }}

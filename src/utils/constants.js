@@ -17,6 +17,8 @@ export const YOUTUBE_CHANNELS_API = `${BASE_YOUTUBE_API}/channels?part=snippet,s
 
 export const YOUTUBE_CHANNEL_BY_ID = `${BASE_YOUTUBE_API}/channels?part=snippet,statistics,brandingSettings&key=${API_KEY}&id=`;
 
+export const YOUTUBE_CHANNEL_VIDEOS_API = `${BASE_YOUTUBE_API}/search?part=snippet&type=video&order=date&maxResults=24&key=${API_KEY}&channelId=`;
+
 export const YOUTUBE_COMMENT_THREADS_API = `${BASE_YOUTUBE_API}/commentThreads?part=snippet,replies&maxResults=50&key=${API_KEY}&videoId=`;
 
 // export const YOUTUBE_SEARCH_API = `https://serpapi.com/search.json?engine=google_autocomplete&search_query=`

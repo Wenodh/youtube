@@ -1,42 +1,86 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { formatDate, formatViewCount } from "../../utils/helperFunctions";
 
-const VideoCard = ({ info, channelLogo }) => {
-  const snippet = info?.snippet || {};
-  const statistics = info?.statistics || {};
-  const { channelTitle = "Unknown channel", title = "Untitled video", thumbnails = {}, publishedAt } = snippet;
-  const videoId = info?.id?.videoId || info?.id;
-  const thumbnailUrl = thumbnails.medium?.url || thumbnails.high?.url || thumbnails.default?.url;
+const VideoCard = ({ info }) => {
+  const { snippet, statistics } = info;
+  const { channelTitle, title, thumbnails, publishedAt, channelId } = snippet;
+  const [channelLogo, setChannelLogo] = useState("");
   const [isHovered, setIsHovered] = useState(false);
 
+  useEffect(() => {
+    const fetchChannelLogo = async () => {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`,
+      );
+      const data = await response.json();
+      const logoUrl = data?.items[0]?.snippet?.thumbnails?.default?.url;
+      if (logoUrl) {
+        setChannelLogo(logoUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching channel logo:", error);
+    }
+  };
+    fetchChannelLogo();
+  }, [channelId]);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
-    <div className="group relative flex flex-col gap-2 transition-all duration-300" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      <div className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
-        {thumbnailUrl && <img className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105" src={thumbnailUrl} alt={`Thumbnail for ${title}`} loading="lazy" decoding="async" />}
-        {isHovered && videoId && (
-          <iframe
-            className="absolute left-0 top-0 z-10 aspect-video w-full rounded-xl"
-            src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&mute=1&controls=0&playsinline=1`}
-            title={`Preview: ${title}`}
-            loading="lazy"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allow="autoplay; encrypted-media; picture-in-picture"
-          />
-        )}
+    <div
+      className="group relative flex flex-col gap-2 transition-all duration-300"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="relative overflow-hidden rounded-xl">
+      <img
+        className="aspect-video w-full transition-transform duration-500 group-hover:scale-105"
+        src={thumbnails.medium.url}
+        alt="thumbnail"
+      />
+      {isHovered && (
+        <iframe
+          className="absolute left-0 top-0 z-10 aspect-video w-full rounded-xl"
+          src={`https://www.youtube.com/embed/${info.id.videoId || info.id}?autoplay=1&mute=1`}
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        ></iframe>
+      )}
       </div>
       <div className="flex gap-2 p-1 sm:gap-3">
-        {channelLogo ? (
-          <img className="mt-1 h-7 w-7 shrink-0 rounded-full object-cover sm:h-9 sm:w-9" src={channelLogo} alt={`${channelTitle} channel avatar`} loading="lazy" />
-        ) : (
-          <div className="mt-1 h-7 w-7 shrink-0 rounded-full bg-gray-200 dark:bg-gray-700 sm:h-9 sm:w-9" aria-hidden="true" />
+        {channelLogo && (
+          <Link
+            className="mt-1 h-7 w-7 shrink-0 sm:h-9 sm:w-9"
+            to={"/channel?c=" + channelTitle}
+          >
+            <img
+              className="w-full rounded-full object-contain"
+              src={channelLogo}
+              alt="channelLogo"
+            />
+          </Link>
         )}
-        <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
-          <h3 className="line-clamp-2 text-ellipsis text-[13px] font-semibold leading-snug text-[#0f0f0f] dark:text-gray-100 sm:text-[15px]">{title}</h3>
+        <div className="flex flex-col gap-0.5 sm:gap-1">
+          <h3 className="line-clamp-2 text-ellipsis text-[13px] font-semibold leading-snug text-[#0f0f0f] dark:text-gray-100 sm:text-[15px]">
+            {title}
+          </h3>
           <div className="text-[11px] text-[#606060] dark:text-gray-400 sm:text-[13px]">
-            <p className="line-clamp-1">{channelTitle}</p>
+            <p className="hover:text-black dark:hover:text-white line-clamp-1">{channelTitle}</p>
             <p className="text-[10px] sm:text-xs">
-              {statistics.viewCount != null && <span>{formatViewCount(statistics.viewCount)} views • </span>}
-              {publishedAt && formatDate(publishedAt)}
+              {statistics?.viewCount && (
+                <span>{formatViewCount(statistics?.viewCount)} views • </span>
+              )}
+              {formatDate(publishedAt)}
             </p>
           </div>
         </div>

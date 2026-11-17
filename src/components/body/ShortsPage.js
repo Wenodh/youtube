@@ -14,8 +14,8 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
   const [showIcon, setShowIcon] = useState(false);
 
   useEffect(() => {
-    // Initialize YouTube Player
-    new window.YT.Player(containerRef.current, {
+    let disposed = false;
+    const player = new window.YT.Player(containerRef.current, {
       videoId: short.id.videoId,
       playerVars: {
         autoplay: isActive ? 1 : 0,
@@ -32,19 +32,26 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
       },
       events: {
         onReady: (event) => {
+          if (disposed) {
+            event.target.destroy();
+            return;
+          }
           playerRef.current = event.target;
           setIsPlayerReady(true);
         },
       },
     });
+    playerRef.current = player;
 
     return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      disposed = true;
+      playerRef.current?.destroy();
+      playerRef.current = null;
+      setIsPlayerReady(false);
     };
+    // Player instance is tied to this video ID; active/mute state is handled by separate effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [short.id.videoId]); // Only re-create if video ID changes
+  }, [short.id.videoId]);
 
   useEffect(() => {
     if (isPlayerReady && playerRef.current) {
@@ -172,42 +179,72 @@ const ShortsPage = () => {
   const [activeVideoId, setActiveVideoId] = useState(null);
   const [isGlobalMuted, setIsGlobalMuted] = useState(true);
   const [apiReady, setApiReady] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [shortsError, setShortsError] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // Load YouTube IFrame API
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        setApiReady(true);
-      };
-    } else {
+    if (window.YT?.Player) {
       setApiReady(true);
+      return undefined;
     }
+
+    const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+    const script = existingScript || document.createElement("script");
+    const previousCallback = window.onYouTubeIframeAPIReady;
+    let disposed = false;
+    const handleReady = () => {
+      if (!disposed) setApiReady(Boolean(window.YT?.Player));
+      if (typeof previousCallback === "function") previousCallback();
+    };
+    window.onYouTubeIframeAPIReady = handleReady;
+    if (!existingScript) {
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.onerror = () => {
+        if (!disposed) setApiError("Unable to load the YouTube player. Check your connection and retry.");
+      };
+      document.head.appendChild(script);
+    } else {
+      script.addEventListener("error", () => {
+        if (!disposed) setApiError("Unable to load the YouTube player. Check your connection and retry.");
+      }, { once: true });
+    }
+
+    return () => {
+      disposed = true;
+      if (window.onYouTubeIframeAPIReady === handleReady) {
+        window.onYouTubeIframeAPIReady = previousCallback || null;
+      }
+    };
   }, []);
 
-  const getShorts = useCallback(async () => {
+  const getShorts = useCallback(async (signal) => {
     try {
-      const res = await fetch(YOUTUBE_SHORTS_API);
+      setShortsError("");
+      const res = await fetch(YOUTUBE_SHORTS_API, { signal });
       const data = await res.json();
-      setShorts(data.items);
-      if (data.items.length > 0) {
-        setActiveVideoId(data.items[0].id.videoId);
+      if (!res.ok || data.error) throw new Error(data.error?.message || "Unable to load Shorts.");
+      const items = (data.items || []).filter((item) => item?.id?.videoId);
+      if (!signal?.aborted) {
+        setShorts(items);
+        setActiveVideoId(items[0]?.id?.videoId || null);
       }
     } catch (err) {
-      console.error("Failed to fetch shorts", err);
+      if (err.name !== "AbortError") {
+        setShortsError(err.message || "Failed to fetch Shorts.");
+        console.error("Failed to fetch shorts:", err);
+      }
     }
   }, []);
 
   useEffect(() => {
     dispatch(closeMenu());
-    getShorts();
+    const controller = new AbortController();
+    getShorts(controller.signal);
+    return () => controller.abort();
   }, [dispatch, getShorts]);
 
   useEffect(() => {
@@ -231,7 +268,7 @@ const ShortsPage = () => {
     targets?.forEach((target) => observer.observe(target));
 
     return () => {
-      targets?.forEach((target) => observer.unobserve(target));
+      observer.disconnect();
     };
   }, [shorts]);
 
@@ -239,13 +276,15 @@ const ShortsPage = () => {
     setIsGlobalMuted(!isGlobalMuted);
   };
 
-  if (!apiReady) return null;
+  if (apiError) return <p className="p-8 text-center text-red-500" role="alert">{apiError}</p>;
+  if (!apiReady) return <p className="p-8 text-center text-gray-500" role="status">Loading Shorts player…</p>;
 
   return (
     <div
       ref={containerRef}
       className="h-screen md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f] relative"
     >
+      {shortsError && <p className="absolute left-4 right-4 top-16 z-40 rounded-lg bg-red-950/80 p-3 text-sm text-white" role="alert">{shortsError}</p>}
       {/* Mobile Back Button */}
       <button
         onClick={() => navigate('/')}
