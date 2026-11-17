@@ -153,12 +153,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute, onOpenComment
             }} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiShare2 className="text-2xl" /></button>
             <span className="text-xs mt-1">Share</span>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiMoreVertical className="text-2xl" />
-            </div>
-          </div>
-        </div>
+</div>
 
         {/* Video Info Overlay */}
         <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-white z-10" onClick={handleActionClick}>
