@@ -55,6 +55,10 @@ const WatchPage = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    setShowComments(shouldOpenComments);
+  }, [shouldOpenComments]);
+
+  useEffect(() => {
     if (!videoId || !/^[\w-]{11}$/.test(videoId)) {
       setVideo(null);
       setIsLoading(false);
