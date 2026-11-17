@@ -6,6 +6,8 @@ const BASE_YOUTUBE_API = "https://youtube.googleapis.com/youtube/v3";
 
 export const YOUTUBE_VIDEOS_API = `${BASE_YOUTUBE_API}/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=50&regionCode=IN&key=${API_KEY}`;
 
+export const YOUTUBE_RELATED_SEARCH_API = `${BASE_YOUTUBE_API}/search?part=snippet&maxResults=30&type=video&order=relevance&key=${API_KEY}`;
+
 export const YOUTUBE_VIDEOS_SEARCH_API = `${BASE_YOUTUBE_API}/search?part=snippet&maxResults=20&type=video&key=${API_KEY}&q=`;
 
 export const YOUTUBE_SHORTS_API = `${BASE_YOUTUBE_API}/search?part=snippet&maxResults=20&type=video&videoDuration=short&key=${API_KEY}&q=Shorts`;

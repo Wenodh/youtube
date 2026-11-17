@@ -4,10 +4,12 @@ import { closeMenu, toggleLikeVideo, addToWatchLater, addToHistory } from "../..
 import { Link, useSearchParams } from "react-router-dom";
 import CommentsContainer from "./CommentsContainer";
 import LiveChat from "./LiveChat";
-import { YOUTUBE_VIDEOS_API, YOUTUBE_VIDEO_BY_ID } from "../../../utils/constants";
+import { YOUTUBE_RELATED_SEARCH_API, YOUTUBE_VIDEO_BY_ID } from "../../../utils/constants";
 import { formatDate, formatViewCount } from "../../../utils/helperFunctions";
 import { fetchYouTubeJson } from "../../../utils/youtubeApi";
-import { FiThumbsUp, FiMessageSquare } from "react-icons/fi";
+import { buildRecommendationQuery, getRecommendationVideoId, rankRecommendations } from "../../../utils/recommendations";
+import { dismissRecommendation, getDismissedRecommendations } from "../../../utils/recommendationStorage";
+import { FiThumbsUp, FiMessageSquare, FiX } from "react-icons/fi";
 import { PiShareFat } from "react-icons/pi";
 import { MdOutlineWatchLater } from "react-icons/md";
 import { FaUserTie } from "react-icons/fa6";
@@ -44,11 +46,17 @@ const WatchPage = () => {
   const dispatch = useDispatch();
   const likedVideos = useSelector((store) => store.app.likedVideos);
   const watchLater = useSelector((store) => store.app.watchLater);
+  const history = useSelector((store) => store.app.history);
   const [video, setVideo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showComments, setShowComments] = useState(shouldOpenComments);
   const [suggestionVideos, setSuggestionVideos] = useState([]);
+  const [candidateVideos, setCandidateVideos] = useState([]);
+  const [candidateVideoId, setCandidateVideoId] = useState("");
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [suggestionError, setSuggestionError] = useState("");
+  const [dismissedIds, setDismissedIds] = useState(getDismissedRecommendations);
 
   useEffect(() => {
     dispatch(closeMenu());
@@ -88,20 +96,37 @@ const WatchPage = () => {
     return () => controller.abort();
   }, [videoId, dispatch]);
 
+  // Fetch candidates for the active video; preference changes re-rank this pool locally.
   useEffect(() => {
+    if (!video?.id) {
+      setCandidateVideos([]); setCandidateVideoId(""); setSuggestionVideos([]);
+      setIsLoadingSuggestions(false); return undefined;
+    }
     const controller = new AbortController();
-    const loadSuggestions = async () => {
+    const loadCandidates = async () => {
+      setIsLoadingSuggestions(true); setSuggestionError("");
+      setCandidateVideos([]); setCandidateVideoId("");
       try {
-        const data = await fetchYouTubeJson(YOUTUBE_VIDEOS_API, { signal: controller.signal, ttlMs: 300_000 });
-        if (!controller.signal.aborted) setSuggestionVideos(data.items || []);
+        const url = new URL(YOUTUBE_RELATED_SEARCH_API);
+        url.searchParams.set("q", buildRecommendationQuery(video));
+        const data = await fetchYouTubeJson(url.toString(), { signal: controller.signal, ttlMs: 600_000 });
+        if (!controller.signal.aborted) { setCandidateVideos(data.items || []); setCandidateVideoId(video.id); }
       } catch (requestError) {
-        if (requestError.name !== "AbortError") console.error("Error fetching recommendations:", requestError);
-      }
+        if (requestError.name !== "AbortError") setSuggestionError(requestError.message || "Unable to load relevant recommendations.");
+      } finally { if (!controller.signal.aborted) setIsLoadingSuggestions(false); }
     };
-    loadSuggestions();
-    return () => controller.abort();
-  }, []);
+    loadCandidates(); return () => controller.abort();
+  }, [video?.id]);
 
+  useEffect(() => {
+    if (!candidateVideos.length || candidateVideoId !== video?.id) { setSuggestionVideos([]); return; }
+    setSuggestionVideos(rankRecommendations(candidateVideos, { currentVideo: video, history, likedVideos, dismissedIds }));
+  }, [candidateVideos, candidateVideoId, video, history, likedVideos, dismissedIds]);
+
+  const handleDismissRecommendation = (recommendationId) => {
+    setDismissedIds(dismissRecommendation(recommendationId));
+    setSuggestionVideos((previous) => previous.filter((item) => getRecommendationVideoId(item) !== recommendationId));
+  };
   const isLiked = video && likedVideos.some((item) => getVideoId(item) === video.id);
   const isSaved = video && watchLater.some((item) => getVideoId(item) === video.id);
 
@@ -179,21 +204,26 @@ const WatchPage = () => {
       </div>
       <aside className="col-span-full mt-5 p-1 xl:col-span-3 xl:mt-0 xl:pt-0">
         {video?.snippet?.liveBroadcastContent === "live" && <div className="mb-4 hidden xl:block"><LiveChat /></div>}
-        <h2 className="mb-3 text-lg font-bold tracking-tight">Recommended videos</h2>
+        <h2 className="mb-1 text-lg font-bold tracking-tight">Related to this video</h2>
+        <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">Topic-aware, personalized picks with duplicate-content filtering</p>
+        {isLoadingSuggestions && <p className="py-4 text-sm text-gray-500" role="status">Finding relevant videos…</p>}
+        {suggestionError && <p className="py-3 text-sm text-red-600 dark:text-red-400" role="alert">{suggestionError}</p>}
+        {!isLoadingSuggestions && !suggestionError && suggestionVideos.length === 0 && <p className="py-3 text-sm text-gray-500">No close matches found. Try another video to refresh your recommendations.</p>}
         <div className="flex flex-col gap-2">
-          {suggestionVideos.filter((item) => getVideoId(item) !== videoId).map((item) => {
+          {suggestionVideos.map((item) => {
             const recommendationId = getVideoId(item);
             return (
-              <Link to={"/watch?v=" + encodeURIComponent(recommendationId)} key={recommendationId}>
-                <div className="group flex gap-3 rounded-xl p-2 transition-colors hover:bg-gray-100 dark:hover:bg-[#202020]">
-                  <img className="h-24 w-40 shrink-0 rounded-xl bg-gray-100 object-cover sm:w-44" src={item.snippet?.thumbnails?.medium?.url} alt={item.snippet?.title || "Video thumbnail"} loading="lazy" />
+              <div key={recommendationId} className="group flex gap-2 rounded-xl p-2 transition-colors hover:bg-gray-100 dark:hover:bg-[#202020]">
+                <Link className="flex min-w-0 flex-1 gap-3" to={"/watch?v=" + encodeURIComponent(recommendationId)}>
+                  <img className="h-24 w-40 shrink-0 rounded-xl bg-gray-100 object-cover sm:w-44" src={item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url} alt={item.snippet?.title || "Video thumbnail"} loading="lazy" />
                   <div className="flex min-w-0 flex-col overflow-hidden">
                     <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 group-hover:text-blue-700 dark:text-gray-100 dark:group-hover:text-blue-300">{item.snippet?.title}</h3>
-                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">{item.snippet?.channelTitle}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{formatViewCount(item.statistics?.viewCount)} views</p>
+                    <p className="mt-1 line-clamp-1 text-xs text-gray-600 dark:text-gray-400">{item.snippet?.channelTitle}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{formatDate(item.snippet?.publishedAt)}</p>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                <button type="button" className="h-8 w-8 shrink-0 rounded-full text-gray-500 opacity-70 hover:bg-gray-200 hover:text-black focus:opacity-100 dark:hover:bg-gray-700 dark:hover:text-white" onClick={() => handleDismissRecommendation(recommendationId)} aria-label={`Not interested in ${item.snippet?.title || "this video"}`} title="Not interested"><FiX className="mx-auto" /></button>
+              </div>
             );
           })}
         </div>
