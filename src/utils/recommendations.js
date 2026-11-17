@@ -26,7 +26,7 @@ const normalizeToken = (token) => {
   return normalized;
 };
 const extractRawKeywords = (value = "") => String(value).toLowerCase().normalize("NFKD")
-  .replace(/[^\\p{L}\\p{N}\\s.-]/gu, " ").split(/\\s+/)
+  .replace(/[^a-z0-9\\s.-]/g, " ").split(/\\s+/)
   .map((word) => word.replace(/^[.-]+|[.-]+$/g, ""))
   .filter((word) => word.length > 2 && !STOP_WORDS.has(word));
 export const extractKeywords = (value = "") => [...new Set(String(value).toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}\s.-]/gu, " ").split(/\s+/).map((word) => word.replace(/^[.-]+|[.-]+$/g, "")).filter((word) => word.length > 2 && !STOP_WORDS.has(word)).map(normalizeToken))];
@@ -77,7 +77,9 @@ export const rankRecommendations = (candidates = [], context = {}, limit = 12) =
   return selected.map((entry) => entry.video);
 };
 export const buildRecommendationQuery = (video) => {
-  const title = extractKeywords(video?.snippet?.title || ""); const description = extractKeywords(video?.snippet?.description || "");
-  return [...new Set([...title, ...description])].slice(0, 10).join(" ") || video?.snippet?.title || "";
+  const title = extractRawKeywords(video?.snippet?.title || "");
+  const description = extractRawKeywords(video?.snippet?.description || "");
+  // Search YouTube with readable natural-language terms, never internal concept IDs.
+  return [...new Set([...title.slice(0, 7), ...description])].slice(0, 10).join(" ") || video?.snippet?.title || "";
 };
 export const getRecommendationVideoId = getVideoId;
