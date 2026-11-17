@@ -14,6 +14,12 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
   const [showIcon, setShowIcon] = useState(false);
 
   useEffect(() => {
+    if (!isActive) {
+      playerRef.current?.destroy();
+      playerRef.current = null;
+      setIsPlayerReady(false);
+      return undefined;
+    }
     let disposed = false;
     const player = new window.YT.Player(containerRef.current, {
       videoId: short.id.videoId,
@@ -51,7 +57,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
     };
     // Player instance is tied to this video ID; active/mute state is handled by separate effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [short.id.videoId]);
+  }, [short.id.videoId, isActive]);
 
   useEffect(() => {
     if (isPlayerReady && playerRef.current) {
@@ -160,7 +166,7 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
             <div className="bg-gray-400 p-1 rounded-full">
               <FaUserTie className="text-xl" />
             </div>
-            <span className="font-bold text-sm">@{short.snippet.channelTitle.replace(/\s+/g, '').toLowerCase()}</span>
+            <span className="font-bold text-sm">@{(short.snippet?.channelTitle || "youtube").replace(/\s+/g, "").toLowerCase()}</span>
             <button className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold ml-2">
               Subscribe
             </button>
@@ -270,7 +276,7 @@ const ShortsPage = () => {
     return () => {
       observer.disconnect();
     };
-  }, [shorts]);
+  }, [shorts, apiReady]);
 
   const toggleMute = () => {
     setIsGlobalMuted(!isGlobalMuted);

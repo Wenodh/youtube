@@ -100,6 +100,7 @@ const Head = () => {
   }, [searchQuery, dispatch]);
 
   useEffect(() => {
+    suggestionRequestId.current += 1;
     const query = searchQuery.trim();
     if (query.length < 2) {
       suggestionRequestId.current += 1;

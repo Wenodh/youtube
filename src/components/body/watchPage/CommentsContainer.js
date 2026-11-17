@@ -3,6 +3,12 @@ import { YOUTUBE_COMMENT_THREADS_API } from "../../../utils/constants";
 import { formatDistanceToNow } from "date-fns";
 import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
 
+const getPlainCommentText = (value) => {
+  if (typeof value !== "string") return "";
+  const documentParser = new DOMParser();
+  return documentParser.parseFromString(value, "text/html").body.textContent || "";
+};
+
 const Comment = ({ data }) => {
   const snippet = data?.snippet?.topLevelComment?.snippet || data?.snippet;
   const {
