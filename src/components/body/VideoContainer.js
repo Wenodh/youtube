@@ -14,7 +14,7 @@ const VideoContainer = () => {
   const [videos, setVideos] = useState([]);
   const [channelLogos, setChannelLogos] = useState({});
   const [nextPageToken, setNextPageToken] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q")?.trim() || "";
@@ -124,7 +124,7 @@ const VideoContainer = () => {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 p-2 sm:gap-3 sm:p-4 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-7 p-3 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-8 sm:p-4 lg:grid-cols-3 xl:grid-cols-4">
         {videos.map((video, index) => {
           const videoId = getVideoId(video);
           return (
@@ -140,7 +140,23 @@ const VideoContainer = () => {
           <button className="ml-2 font-semibold underline" onClick={() => getVideos({ reset: videos.length === 0 })}>Retry</button>
         </div>
       )}
-      {isLoading && <div className="flex justify-center p-4" role="status" aria-label="Loading videos"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div></div>}
+      {isLoading && videos.length === 0 && (
+        <div className="grid grid-cols-1 gap-x-4 gap-y-7 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3 xl:grid-cols-4" role="status" aria-label="Loading videos">
+          {Array.from({ length: 8 }, (_, index) => (
+            <div key={index} className="flex flex-col gap-3" aria-hidden="true">
+              <div className="aspect-video animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800" />
+              <div className="flex gap-3">
+                <div className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+                <div className="flex flex-1 flex-col gap-2 pt-1">
+                  <div className="h-3 w-11/12 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {isLoading && videos.length > 0 && <div className="flex justify-center p-4" role="status" aria-label="Loading more videos"><div className="h-7 w-7 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div></div>}
       {!isLoading && !error && videos.length === 0 && <p className="p-8 text-center text-gray-500">No videos found.</p>}
     </>
   );
