@@ -148,9 +148,11 @@ const WatchPage = () => {
                   className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 ${isLiked ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "bg-gray-100 dark:bg-gray-800"}`}
                   onClick={() => dispatch(toggleLikeVideo(video))}
                   aria-pressed={Boolean(isLiked)}
+                  title="Local preference only — this does not like the video on YouTube"
                 >
-                  <FiThumbsUp /> {formatViewCount(video.statistics?.likeCount)}
+                  <FiThumbsUp /> {isLiked ? "Liked locally" : "Like locally"}
                 </button>
+                <span className="shrink-0 text-xs text-gray-500">{formatViewCount(video.statistics?.likeCount)} YouTube likes</span>
                 <button className="flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3 py-2 dark:bg-gray-800" onClick={handleShare}>
                   <PiShareFat className="text-xl" /> Share
                 </button>
