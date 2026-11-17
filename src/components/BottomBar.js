@@ -8,16 +8,21 @@ const BottomBar = () => {
   const location = useLocation();
 
   const navItem = (to, icon, text) => {
-    const isActive = location.pathname === to;
+    const isActive = to === "/"
+      ? location.pathname === "/" && !location.search
+      : location.pathname === to || (to === "/library" && ["/history", "/watchlater", "/liked"].includes(location.pathname));
+
     return (
       <Link
+        key={text}
         to={to}
-        className={`flex flex-col items-center justify-center gap-1 ${
-          isActive ? "text-black dark:text-white" : "text-gray-600 dark:text-gray-400"
+        aria-current={isActive ? "page" : undefined}
+        className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-2 transition-colors focus-visible:outline-offset-2 ${
+          isActive ? "text-red-600 dark:text-red-400" : "text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white"
         }`}
       >
-        {React.createElement(icon, { className: "text-2xl" })}
-        <span className="text-[10px]">{text}</span>
+        {React.createElement(icon, { className: "text-[22px]" })}
+        <span className="text-[10px] font-medium">{text}</span>
       </Link>
     );
   };
@@ -25,12 +30,15 @@ const BottomBar = () => {
   if (location.pathname === "/shorts") return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 items-center border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f0f0f] py-2 md:hidden">
+    <nav
+      aria-label="Mobile navigation"
+      className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 items-center border-t border-gray-200/90 bg-white/95 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] shadow-[0_-4px_18px_rgba(0,0,0,0.04)] backdrop-blur-md dark:border-gray-800 dark:bg-[#0f0f0f]/95 md:hidden"
+    >
       {navItem("/", AiOutlineHome, "Home")}
       {navItem("/shorts", BsPlayBtn, "Shorts")}
       {navItem("/underconstruction", MdOutlineSubscriptions, "Subscriptions")}
-      {navItem("/underconstruction", MdOutlineVideoLibrary, "You")}
-    </div>
+      {navItem("/library", MdOutlineVideoLibrary, "You")}
+    </nav>
   );
 };
 
