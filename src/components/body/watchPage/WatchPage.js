@@ -94,6 +94,7 @@ const WatchPage = () => {
     if (!video?.id) {
       setCandidateVideos([]);
       setSuggestionVideos([]);
+      setIsLoadingSuggestions(false);
       return undefined;
     }
     const controller = new AbortController();
