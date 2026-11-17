@@ -26,8 +26,7 @@ const normalizeToken = (token) => {
   return normalized;
 };
 const extractRawKeywords = (value = "") => String(value).toLowerCase().normalize("NFKD")
-  .replace(/[^a-z0-9\\s.-]/g, " ").split(/\\s+/)
-  .map((word) => word.replace(/^[.-]+|[.-]+$/g, ""))
+  .replace(/[^a-z0-9]/g, " ").split(" ")
   .filter((word) => word.length > 2 && !STOP_WORDS.has(word));
 export const extractKeywords = (value = "") => [...new Set(String(value).toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}\s.-]/gu, " ").split(/\s+/).map((word) => word.replace(/^[.-]+|[.-]+$/g, "")).filter((word) => word.length > 2 && !STOP_WORDS.has(word)).map(normalizeToken))];
 const getText = (video) => [video?.snippet?.title, video?.snippet?.description, video?.snippet?.tags?.join(" ")].filter(Boolean).join(" ");
