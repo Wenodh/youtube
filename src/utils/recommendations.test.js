@@ -54,10 +54,10 @@ describe("recommendation ranking", () => {
   test("limits repeated creators before filling remaining slots", () => {
     const currentVideo = makeVideo("current", "JavaScript programming");
     const candidates = [
-      makeVideo("a", "JavaScript tutorial one", "same"),
-      makeVideo("b", "JavaScript tutorial two", "same"),
-      makeVideo("c", "JavaScript tutorial three", "same"),
-      makeVideo("d", "JavaScript patterns", "different"),
+      makeVideo("a", "JavaScript programming tutorial", "same"),
+      makeVideo("b", "JavaScript programming tutorial", "same"),
+      makeVideo("c", "JavaScript programming tutorial", "same"),
+      makeVideo("d", "JavaScript programming tutorial", "different"),
     ];
     const result = rankRecommendations(candidates, { currentVideo }, 4);
     expect(result.map((video) => video.id)).toEqual(["a", "b", "d", "c"]);

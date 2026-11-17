@@ -1,9 +1,10 @@
 const STOP_WORDS = new Set([
-  "about", "after", "again", "also", "been", "being", "between", "could",
-  "from", "have", "into", "just", "more", "most", "over", "some", "than",
-  "that", "their", "them", "then", "there", "these", "they", "this", "those",
-  "through", "under", "very", "what", "when", "where", "which", "while",
-  "with", "would", "your", "video", "official", "full", "episode",
+  "about", "after", "again", "also", "and", "are", "been", "being", "between",
+  "could", "for", "from", "have", "how", "into", "just", "more", "most", "new",
+  "over", "some", "than", "that", "the", "their", "them", "then", "there",
+  "these", "they", "this", "those", "through", "top", "under", "very", "what",
+  "when", "where", "which", "while", "with", "would", "you", "your", "video",
+  "official", "full", "episode",
 ]);
 
 const getVideoId = (video) => video?.id?.videoId || video?.id || "";
@@ -53,7 +54,7 @@ export const scoreRecommendation = (candidate, {
   ];
   const interestScore = preferenceVideos.reduce((best, entry) => {
     return Math.max(best, similarity(
-      extractKeywords(videoText(entry.video)),
+      extractKeywords(getText(entry.video)),
       candidateKeywords,
     ) * entry.weight);
   }, 0);
@@ -61,18 +62,13 @@ export const scoreRecommendation = (candidate, {
     currentVideo?.snippet?.channelId &&
     currentVideo.snippet.channelId === candidate?.snippet?.channelId
   );
-  const channelScore = sameChannel ? 1 : 0;
   const freshnessScore = getFreshness(candidate?.snippet?.publishedAt);
 
   return (topicScore * 0.62) +
     (Math.min(1, interestScore) * 0.23) +
-    (channelScore * 0.05) +
+    (Number(sameChannel) * 0.05) +
     (freshnessScore * 0.10);
 };
-
-function videoText(video) {
-  return getText(video);
-}
 
 export const rankRecommendations = (candidates = [], context = {}, limit = 12) => {
   const currentId = getVideoId(context.currentVideo);
@@ -85,13 +81,10 @@ export const rankRecommendations = (candidates = [], context = {}, limit = 12) =
       seen.add(id);
       return true;
     })
-    .map((video) => ({
-      video,
-      score: scoreRecommendation(video, context),
-    }))
+    .map((video) => ({ video, score: scoreRecommendation(video, context) }))
     .sort((a, b) => b.score - a.score);
 
-  // Keep the list varied: no more than two videos from one channel in a row/list.
+  // Keep the list varied: no more than two videos from one channel in the first pass.
   const result = [];
   const deferred = [];
   const channelCounts = new Map();
