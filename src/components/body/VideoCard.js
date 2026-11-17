@@ -1,4 +1,5 @@
 import React from "react";
+import { FiPlay } from "react-icons/fi";
 import { formatDate, formatViewCount } from "../../utils/helperFunctions";
 
 const VideoCard = ({ info, channelLogo }) => {
@@ -9,10 +10,10 @@ const VideoCard = ({ info, channelLogo }) => {
 
   return (
     <article className="group flex min-w-0 flex-col gap-2.5 rounded-xl focus-within:outline-none">
-      <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-100 dark:bg-[#272727]">
+      <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-100 shadow-sm transition-shadow duration-200 group-hover:shadow-md dark:bg-[#272727]">
         {thumbnailUrl ? (
           <img
-            className="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-[1.035]"
             src={thumbnailUrl}
             alt={`Thumbnail for ${title}`}
             loading="lazy"
@@ -21,7 +22,9 @@ const VideoCard = ({ info, channelLogo }) => {
         ) : (
           <div className="h-full w-full animate-pulse bg-gray-200 dark:bg-gray-800" aria-label="Thumbnail unavailable" />
         )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/20 group-hover:opacity-100" aria-hidden="true">
+          <span className="rounded-full bg-black/70 p-3 text-white shadow-lg"><FiPlay className="text-xl" /></span>
+        </div>
       </div>
       <div className="flex min-w-0 gap-2.5 px-0.5">
         {channelLogo ? (
@@ -33,7 +36,9 @@ const VideoCard = ({ info, channelLogo }) => {
             decoding="async"
           />
         ) : (
-          <div className="mt-0.5 h-9 w-9 shrink-0 rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-200" aria-hidden="true">
+            {channelTitle.slice(0, 1).toUpperCase()}
+          </div>
         )}
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-[#0f0f0f] transition-colors group-hover:text-blue-700 dark:text-gray-100 dark:group-hover:text-blue-300 sm:text-sm">
