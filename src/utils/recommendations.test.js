@@ -6,7 +6,10 @@ describe("recommendation relevance and diversity", () => {
     expect(getContentSimilarity(makeVideo("a","React performance optimization"), makeVideo("b","React speed improvements"))).toBeGreaterThan(0.5);
   });
   test("builds a query from title and description terms", () => {
-    expect(buildRecommendationQuery(makeVideo("x","React performance guide","c","profiling hooks and rendering"))).toContain("concept-5");
+    const query = buildRecommendationQuery(makeVideo("x","React performance guide","c","profiling hooks and rendering"));
+    expect(query).toContain("react");
+    expect(query).toContain("performance");
+    expect(query).not.toContain("concept-");
   });
   test("ranks relevant topics above unrelated content", () => {
     const current = makeVideo("current","React performance optimization hooks");

@@ -25,6 +25,10 @@ const normalizeToken = (token) => {
   if (normalized.endsWith("s") && normalized.length > 3) return normalized.slice(0, -1);
   return normalized;
 };
+const extractRawKeywords = (value = "") => String(value).toLowerCase().normalize("NFKD")
+  .replace(/[^\\p{L}\\p{N}\\s.-]/gu, " ").split(/\\s+/)
+  .map((word) => word.replace(/^[.-]+|[.-]+$/g, ""))
+  .filter((word) => word.length > 2 && !STOP_WORDS.has(word));
 export const extractKeywords = (value = "") => [...new Set(String(value).toLowerCase().normalize("NFKD").replace(/[^\p{L}\p{N}\s.-]/gu, " ").split(/\s+/).map((word) => word.replace(/^[.-]+|[.-]+$/g, "")).filter((word) => word.length > 2 && !STOP_WORDS.has(word)).map(normalizeToken))];
 const getText = (video) => [video?.snippet?.title, video?.snippet?.description, video?.snippet?.tags?.join(" ")].filter(Boolean).join(" ");
 const cosineSimilarity = (left, right) => {
@@ -44,11 +48,12 @@ const getPreferenceScore = (candidateKeywords, history = [], likedVideos = []) =
   return totalWeight ? preferences.reduce((sum, item) => sum + cosineSimilarity(extractKeywords(getText(item.video)), candidateKeywords) * item.weight, 0) / totalWeight : 0;
 };
 export const scoreRecommendation = (candidate, { currentVideo, history = [], likedVideos = [] } = {}) => {
-  const currentKeywords = extractKeywords(getText(currentVideo));
-  const candidateKeywords = extractKeywords(getText(candidate));
-  const lexical = cosineSimilarity(currentKeywords, candidateKeywords);
-  // Concept-normalized lexical overlap acts as a lightweight semantic signal, not an embedding.
-  const semantic = lexical;
+  const currentText = getText(currentVideo);
+  const candidateText = getText(candidate);
+  const lexical = cosineSimilarity(extractRawKeywords(currentText), extractRawKeywords(candidateText));
+  // Concept-normalized overlap captures related wording (e.g. speed/performance) without an embedding model.
+  const semantic = cosineSimilarity(extractKeywords(currentText), extractKeywords(candidateText));
+  const candidateKeywords = extractKeywords(candidateText);
   const interests = getPreferenceScore(candidateKeywords, history, likedVideos);
   return lexical * 0.35 + semantic * 0.30 + interests * 0.30 + getFreshness(candidate?.snippet?.publishedAt) * 0.05;
 };
