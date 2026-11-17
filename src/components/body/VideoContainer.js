@@ -88,7 +88,7 @@ const VideoContainer = () => {
   useEffect(() => {
     const missingIds = [...new Set(videos
       .map((video) => video?.snippet?.channelId)
-      .filter((id) => id && !channelLogos[id]))];
+      .filter((id) => id && !(id in channelLogos)))];
     if (!missingIds.length) return undefined;
 
     const controller = new AbortController();
@@ -99,7 +99,7 @@ const VideoContainer = () => {
           const response = await fetch(YOUTUBE_CHANNELS_API + batch.join(","), { signal: controller.signal });
           const data = await response.json();
           if (!response.ok || data.error) throw new Error(data.error?.message || "Channel lookup failed.");
-          const logos = {};
+          const logos = Object.fromEntries(batch.map((id) => [id, null]));
           (data.items || []).forEach((channel) => {
             const url = channel.snippet?.thumbnails?.default?.url;
             if (url) logos[channel.id] = url;
