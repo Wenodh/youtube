@@ -20,7 +20,7 @@ const VideoDescription = ({ video }) => {
   const shouldCollapse = description.length > 200;
 
   return (
-    <section className="m-2 rounded-xl bg-gray-100 p-3 text-sm dark:bg-gray-800/50">
+    <section className="mx-1 mt-4 rounded-2xl bg-gray-100 p-4 text-sm dark:bg-[#202020]">
       <div className="mb-1 flex gap-2 font-bold">
         <span>{formatViewCount(video?.statistics?.viewCount)} views</span>
         <span>{formatDate(video?.snippet?.publishedAt)}</span>
@@ -116,11 +116,11 @@ const WatchPage = () => {
   };
 
   return (
-    <div className="grid w-full grid-cols-12 p-2 pb-20 md:p-4 md:pb-4">
+    <div className="mx-auto grid w-full max-w-[1900px] grid-cols-12 gap-x-4 p-2 pb-24 sm:p-4 md:pb-6 xl:gap-x-6">
       <div className="col-span-full xl:col-span-9">
         {videoId && /^[\w-]{11}$/.test(videoId) && (
           <iframe
-            className="aspect-video w-full rounded-xl bg-black"
+            className="aspect-video w-full rounded-2xl bg-black shadow-sm"
             src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`}
             title={video?.snippet?.title || "YouTube video player"}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -132,8 +132,8 @@ const WatchPage = () => {
         {error && <p className="m-3 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300" role="alert">{error}</p>}
         {video && (
           <>
-            <h1 className="m-2 overflow-hidden text-ellipsis text-xl font-bold">{video.snippet?.title}</h1>
-            <div className="m-2 flex flex-col gap-4 md:flex-row md:items-center">
+            <h1 className="mx-1 mb-3 mt-4 line-clamp-2 text-lg font-bold leading-snug tracking-tight sm:text-xl">{video.snippet?.title}</h1>
+            <div className="mx-1 flex flex-col gap-3 border-b border-gray-100 pb-3 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center">
                 <FaUserTie className="shrink-0 rounded-full border border-gray-400 text-4xl" />
                 <div className="ml-2 min-w-0">
@@ -143,7 +143,7 @@ const WatchPage = () => {
                   <span className="text-xs text-gray-500 dark:text-gray-400">YouTube channel</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+              <div className="flex max-w-full items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
                 <button
                   className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 ${isLiked ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "bg-gray-100 dark:bg-gray-800"}`}
                   onClick={() => dispatch(toggleLikeVideo(video))}
@@ -177,18 +177,18 @@ const WatchPage = () => {
           </>
         )}
       </div>
-      <aside className="col-span-full p-2 xl:col-span-3">
+      <aside className="col-span-full mt-5 p-1 xl:col-span-3 xl:mt-0 xl:pt-0">
         {video?.snippet?.liveBroadcastContent === "live" && <div className="mb-4 hidden xl:block"><LiveChat /></div>}
-        <h2 className="mb-2 font-bold">Recommendations</h2>
+        <h2 className="mb-3 text-lg font-bold tracking-tight">Recommended videos</h2>
         <div className="flex flex-col gap-2">
           {suggestionVideos.filter((item) => getVideoId(item) !== videoId).map((item) => {
             const recommendationId = getVideoId(item);
             return (
               <Link to={"/watch?v=" + encodeURIComponent(recommendationId)} key={recommendationId}>
-                <div className="flex gap-2 rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <img className="h-24 w-40 rounded-lg object-cover" src={item.snippet?.thumbnails?.medium?.url} alt={item.snippet?.title || "Video thumbnail"} loading="lazy" />
+                <div className="group flex gap-3 rounded-xl p-2 transition-colors hover:bg-gray-100 dark:hover:bg-[#202020]">
+                  <img className="h-24 w-40 shrink-0 rounded-xl bg-gray-100 object-cover sm:w-44" src={item.snippet?.thumbnails?.medium?.url} alt={item.snippet?.title || "Video thumbnail"} loading="lazy" />
                   <div className="flex min-w-0 flex-col overflow-hidden">
-                    <h3 className="line-clamp-2 text-sm font-bold leading-tight dark:text-gray-100">{item.snippet?.title}</h3>
+                    <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 group-hover:text-blue-700 dark:text-gray-100 dark:group-hover:text-blue-300">{item.snippet?.title}</h3>
                     <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">{item.snippet?.channelTitle}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">{formatViewCount(item.statistics?.viewCount)} views</p>
                   </div>
