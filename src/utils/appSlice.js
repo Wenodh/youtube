@@ -1,14 +1,29 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const readStoredArray = (key) => {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+};
+
+const readStoredBoolean = (key) => {
+  try { return localStorage.getItem(key) === "true"; } catch { return false; }
+};
+
+const getVideoId = (video) => video?.id?.videoId || video?.id;
+
 const appSlice = createSlice({
   name: "app",
   initialState: {
-    isMenuOpen: window.innerWidth > 768,
+    isMenuOpen: typeof window !== "undefined" ? window.innerWidth > 768 : false,
     user: null,
-    isDarkMode: localStorage.getItem("darkMode") === "true",
-    watchLater: JSON.parse(localStorage.getItem("watchLater") || "[]"),
-    likedVideos: JSON.parse(localStorage.getItem("likedVideos") || "[]"),
-    history: JSON.parse(localStorage.getItem("history") || "[]"),
+    isDarkMode: readStoredBoolean("darkMode"),
+    watchLater: readStoredArray("watchLater"),
+    likedVideos: readStoredArray("likedVideos"),
+    history: readStoredArray("history"),
   },
   reducers: {
     toggleMenu: (state, action) => {
@@ -25,34 +40,36 @@ const appSlice = createSlice({
     },
     toggleDarkMode: (state) => {
       state.isDarkMode = !state.isDarkMode;
-      localStorage.setItem("darkMode", state.isDarkMode);
+
     },
     addToWatchLater: (state, action) => {
-      const exists = state.watchLater.find(v => v.id === action.payload.id);
+      const videoId = getVideoId(action.payload);
+      const exists = state.watchLater.some((video) => getVideoId(video) === videoId);
       if (exists) {
-        state.watchLater = state.watchLater.filter(v => v.id !== action.payload.id);
+        state.watchLater = state.watchLater.filter((video) => getVideoId(video) !== videoId);
       } else {
         state.watchLater.push(action.payload);
       }
-      localStorage.setItem("watchLater", JSON.stringify(state.watchLater));
+
     },
     toggleLikeVideo: (state, action) => {
-      const exists = state.likedVideos.find(v => v.id === (action.payload.id?.videoId || action.payload.id));
+      const videoId = getVideoId(action.payload);
+      const exists = state.likedVideos.some((video) => getVideoId(video) === videoId);
       if (exists) {
-        state.likedVideos = state.likedVideos.filter(v => (v.id?.videoId || v.id) !== (action.payload.id?.videoId || action.payload.id));
+        state.likedVideos = state.likedVideos.filter((video) => getVideoId(video) !== videoId);
       } else {
         state.likedVideos.push(action.payload);
       }
-      localStorage.setItem("likedVideos", JSON.stringify(state.likedVideos));
+
     },
     addToHistory: (state, action) => {
-      const videoId = action.payload.id?.videoId || action.payload.id;
-      state.history = [action.payload, ...state.history.filter(v => (v.id?.videoId || v.id) !== videoId)].slice(0, 50);
-      localStorage.setItem("history", JSON.stringify(state.history));
+      const videoId = getVideoId(action.payload);
+      state.history = [action.payload, ...state.history.filter(v => getVideoId(v) !== videoId)].slice(0, 50);
+
     },
     clearHistory: (state) => {
       state.history = [];
-      localStorage.setItem("history", "[]");
+
     },
   },
 });

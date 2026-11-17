@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import { IoSearchOutline, IoArrowBackOutline, IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +8,15 @@ import axios from "axios";
 import jsonpAdapter from "axios-jsonp";
 import { cacheResults } from "../utils/searchSlice";
 import { useNavigate, useLocation } from "react-router-dom";
+
+const readSearchHistory = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+};
 
 const Head = () => {
   const dispatch = useDispatch();
@@ -20,10 +29,12 @@ const Head = () => {
   const searchCache = useSelector((store) => store.search);
   const user = useSelector((store) => store.app.user);
   const isDarkMode = useSelector((store) => store.app.isDarkMode);
-  const [searchHistory, setSearchHistory] = useState(() => {
-    const saved = localStorage.getItem("searchHistory");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [searchHistory, setSearchHistory] = useState(readSearchHistory);
+  const suggestionRequestId = useRef(0);
+
+  useEffect(() => {
+    try { localStorage.setItem("searchHistory", JSON.stringify(searchHistory)); } catch { /* Storage may be unavailable. */ }
+  }, [searchHistory]);
 
   const parseJwt = useCallback((token) => {
     const base64Url = token.split(".")[1];
@@ -48,58 +59,75 @@ const Head = () => {
   );
 
   useEffect(() => {
-    /* global google */
-    if (window.google) {
-      google.accounts.id.initialize({
-        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+    if (user) return undefined;
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    let disposed = false;
+
+    const initializeGoogleSignIn = () => {
+      if (disposed || !clientId || !window.google?.accounts?.id) return;
+      const signInDiv = document.getElementById("signInDiv");
+      if (!signInDiv) return;
+      signInDiv.replaceChildren();
+      window.google.accounts.id.initialize({
+        client_id: clientId,
         callback: handleLoginCallback,
       });
+      window.google.accounts.id.renderButton(signInDiv, {
+        theme: "outline",
+        size: "medium",
+        type: "icon",
+        shape: "circle",
+      });
+    };
 
-      const signInDiv = document.getElementById("signInDiv");
-      if (signInDiv) {
-        google.accounts.id.renderButton(signInDiv, {
-          theme: "outline",
-          size: "medium",
-          type: "icon",
-          shape: "circle",
-        });
-      }
-    }
+    if (window.google?.accounts?.id) initializeGoogleSignIn();
+    else script?.addEventListener("load", initializeGoogleSignIn);
+
+    return () => {
+      disposed = true;
+      script?.removeEventListener("load", initializeGoogleSignIn);
+    };
   }, [user, handleLoginCallback]);
 
   const getSearchSuggestions = useCallback(async () => {
+    const query = searchQuery.trim();
+    const requestId = ++suggestionRequestId.current;
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
     try {
       const res = await axios({
         url: YOUTUBE_SEARCH_API,
         adapter: jsonpAdapter,
-        params: {
-          client: "youtube",
-          hl: "en",
-          ds: "yt",
-          q: searchQuery,
-        },
+        params: { client: "youtube", hl: "en", ds: "yt", q: query },
       });
-
-      const data = res.data[1].map((it) => it[0]);
-      dispatch(cacheResults({ [searchQuery]: data }));
+      const data = Array.isArray(res.data?.[1])
+        ? res.data[1].map((item) => item?.[0]).filter(Boolean)
+        : [];
+      if (requestId !== suggestionRequestId.current) return;
+      dispatch(cacheResults({ [query]: data }));
       setSuggestions(data);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      if (requestId === suggestionRequestId.current) setSuggestions([]);
+      console.error("Unable to load search suggestions:", error);
     }
   }, [searchQuery, dispatch]);
 
   useEffect(() => {
+    suggestionRequestId.current += 1;
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      suggestionRequestId.current += 1;
+      setSuggestions([]);
+      return undefined;
+    }
     const timer = setTimeout(() => {
-      if (searchCache[searchQuery]) {
-        setSuggestions(searchCache[searchQuery]);
-      } else {
-        getSearchSuggestions();
-      }
-    }, 200);
-
-    return () => {
-      clearTimeout(timer);
-    };
+      if (searchCache[query]) setSuggestions(searchCache[query]);
+      else getSearchSuggestions();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [searchQuery, searchCache, getSearchSuggestions]);
 
   const toggleMenuHandler = () => {
@@ -107,6 +135,15 @@ const Head = () => {
   };
 
   const isShortsPage = location.pathname === "/shorts";
+
+  const addToHistory = (q) => {
+    const normalizedQuery = q.trim();
+    if (!normalizedQuery) return;
+    setSearchHistory((previous) => {
+      const nextHistory = [normalizedQuery, ...previous.filter((item) => item !== normalizedQuery)].slice(0, 10);
+      return nextHistory;
+    });
+  };
 
   if (isMobileSearchVisible) {
     return (
@@ -127,7 +164,7 @@ const Head = () => {
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                navigate(`/?q=${searchQuery}`);
+                navigate(`/?q=${encodeURIComponent(searchQuery.trim())}`);
                 addToHistory(searchQuery);
                 setShowSuggestions(false);
                 setIsMobileSearchVisible(false);
@@ -145,7 +182,8 @@ const Head = () => {
                       // Using onMouseDown to trigger before onBlur
                       e.preventDefault();
                       setSearchQuery(suggestion);
-                      navigate(`/?q=${suggestion}`);
+                      navigate(`/?q=${encodeURIComponent(suggestion)}`);
+                      addToHistory(suggestion);
                       setShowSuggestions(false);
                       setIsMobileSearchVisible(false);
                     }}
@@ -162,20 +200,10 @@ const Head = () => {
     );
   }
 
-  const addToHistory = (q) => {
-    if (!q.trim()) return;
-    setSearchHistory(prev => {
-      const newHist = [q, ...prev.filter(h => h !== q)].slice(0, 10);
-      localStorage.setItem("searchHistory", JSON.stringify(newHist));
-      return newHist;
-    });
-  };
-
   const removeHistory = (e, q) => {
     e.stopPropagation();
     setSearchHistory(prev => {
       const newHist = prev.filter(h => h !== q);
-      localStorage.setItem("searchHistory", JSON.stringify(newHist));
       return newHist;
     });
   };
@@ -212,7 +240,7 @@ const Head = () => {
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                navigate(`/?q=${searchQuery}`);
+                navigate(`/?q=${encodeURIComponent(searchQuery.trim())}`);
                 addToHistory(searchQuery);
                 setShowSuggestions(false);
               }
@@ -222,7 +250,7 @@ const Head = () => {
             className="rounded-r-full border border-l-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-2 px-6 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => {
               if (!searchQuery) return;
-              navigate(`/?q=${searchQuery}`);
+              navigate(`/?q=${encodeURIComponent(searchQuery.trim())}`);
               addToHistory(searchQuery);
               setShowSuggestions(false);
             }}
@@ -239,7 +267,7 @@ const Head = () => {
                   className="flex items-center justify-between rounded-xl px-4 py-2 font-medium text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80 cursor-pointer"
                   onClick={() => {
                     setSearchQuery(h);
-                    navigate(`/?q=${h}`);
+                    navigate(`/?q=${encodeURIComponent(h)}`);
                     setShowSuggestions(false);
                   }}
                 >
@@ -261,7 +289,7 @@ const Head = () => {
                   className="flex items-center gap-4 rounded-xl px-4 py-2 font-medium text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80 cursor-pointer"
                   onClick={() => {
                     setSearchQuery(suggestion);
-                    navigate(`/?q=${suggestion}`);
+                    navigate(`/?q=${encodeURIComponent(suggestion)}`);
                     addToHistory(suggestion);
                     setShowSuggestions(false);
                   }}
@@ -291,9 +319,9 @@ const Head = () => {
             <img
               className="h-8 w-8 rounded-full cursor-pointer"
               src={user.picture}
-              alt="user"
+              alt="Google profile preview"
               onClick={() => dispatch(logout())}
-              title="Click to logout"
+              title="Google profile preview only — click to clear it; YouTube account actions are not connected"
             />
           </div>
         ) : (

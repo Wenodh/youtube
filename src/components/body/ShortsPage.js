@@ -1,21 +1,32 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { YOUTUBE_SHORTS_API } from "../../utils/constants";
-import { useDispatch } from "react-redux";
-import { closeMenu } from "../../utils/appSlice";
-import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2, FiMoreVertical } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { closeMenu, toggleLikeVideo } from "../../utils/appSlice";
+import { fetchYouTubeJson } from "../../utils/youtubeApi";
+import { FiThumbsUp, FiThumbsDown, FiMessageSquare, FiShare2 } from "react-icons/fi";
 import { FaUserTie } from "react-icons/fa6";
 import { IoVolumeHighOutline, IoVolumeMuteOutline, IoArrowBackOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
+const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute, onOpenComments }) => {
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
+  const dispatch = useDispatch();
+  const likedVideos = useSelector((store) => store.app.likedVideos);
+  const isLiked = likedVideos.some((item) => (item.id?.videoId || item.id) === short.id.videoId);
 
   useEffect(() => {
-    // Initialize YouTube Player
-    new window.YT.Player(containerRef.current, {
+    if (!isActive) {
+      playerRef.current?.destroy();
+      playerRef.current = null;
+      setIsPlayerReady(false);
+      return undefined;
+    }
+    let disposed = false;
+    const player = new window.YT.Player(containerRef.current, {
       videoId: short.id.videoId,
       playerVars: {
         autoplay: isActive ? 1 : 0,
@@ -32,19 +43,25 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
       },
       events: {
         onReady: (event) => {
+          if (disposed) {
+            event.target.destroy();
+            return;
+          }
           playerRef.current = event.target;
           setIsPlayerReady(true);
         },
       },
     });
+    playerRef.current = player;
 
     return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      disposed = true;
+      playerRef.current?.destroy();
+      playerRef.current = null;
     };
+    // Player instance is tied to this video ID; active/mute state is handled by separate effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [short.id.videoId]); // Only re-create if video ID changes
+  }, [short.id.videoId, isActive]);
 
   useEffect(() => {
     if (isPlayerReady && playerRef.current) {
@@ -117,35 +134,26 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
         {/* Action Buttons Overlay */}
         <div className="absolute right-2 bottom-20 flex flex-col items-center gap-6 text-white z-10" onClick={handleActionClick}>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiThumbsUp className="text-2xl" />
-            </div>
-            <span className="text-xs mt-1">Like</span>
+            <button type="button" aria-pressed={Boolean(isLiked)} onClick={() => dispatch(toggleLikeVideo(short))} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiThumbsUp className={`text-2xl ${isLiked ? "fill-current text-blue-300" : ""}`} /></button>
+            <span className="text-xs mt-1">{isLiked ? "Liked locally" : "Like"}</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiThumbsDown className="text-2xl" />
-            </div>
-            <span className="text-xs mt-1">Dislike</span>
+            <button type="button" aria-pressed={isDisliked} onClick={() => setIsDisliked((value) => !value)} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiThumbsDown className={`text-2xl ${isDisliked ? "fill-current text-blue-300" : ""}`} /></button>
+            <span className="text-xs mt-1">{isDisliked ? "Disliked locally" : "Dislike"}</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiMessageSquare className="text-2xl" />
-            </div>
-            <span className="text-xs mt-1">1.2K</span>
+            <button type="button" aria-label="Open comments" onClick={() => onOpenComments(short.id.videoId)} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiMessageSquare className="text-2xl" /></button>
+            <span className="text-xs mt-1">Comments</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiShare2 className="text-2xl" />
-            </div>
+            <button type="button" aria-label="Share Short" onClick={async () => {
+              const url = `https://www.youtube.com/shorts/${short.id.videoId}`;
+              try { if (navigator.share) await navigator.share({ title: short.snippet?.title || "YouTube Short", url }); else await navigator.clipboard?.writeText(url); }
+              catch (error) { if (error.name !== "AbortError") console.error("Unable to share Short:", error); }
+            }} className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60"><FiShare2 className="text-2xl" /></button>
             <span className="text-xs mt-1">Share</span>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-gray-800/60 p-3 rounded-full hover:bg-gray-700/60 cursor-pointer">
-              <FiMoreVertical className="text-2xl" />
-            </div>
-          </div>
-        </div>
+</div>
 
         {/* Video Info Overlay */}
         <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-white z-10" onClick={handleActionClick}>
@@ -153,10 +161,8 @@ const ShortItem = ({ short, isActive, isGlobalMuted, onToggleMute }) => {
             <div className="bg-gray-400 p-1 rounded-full">
               <FaUserTie className="text-xl" />
             </div>
-            <span className="font-bold text-sm">@{short.snippet.channelTitle.replace(/\s+/g, '').toLowerCase()}</span>
-            <button className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold ml-2">
-              Subscribe
-            </button>
+            <span className="font-bold text-sm">@{(short.snippet?.channelTitle || "youtube").replace(/\s+/g, "").toLowerCase()}</span>
+            <button type="button" onClick={() => window.open(`https://www.youtube.com/channel/${encodeURIComponent(short.snippet?.channelId || "")}`, "_blank", "noopener,noreferrer")} className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold ml-2">View channel</button>
           </div>
           <h3 className="line-clamp-2 text-sm leading-snug pr-12">
             {short.snippet.title}
@@ -172,42 +178,70 @@ const ShortsPage = () => {
   const [activeVideoId, setActiveVideoId] = useState(null);
   const [isGlobalMuted, setIsGlobalMuted] = useState(true);
   const [apiReady, setApiReady] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [shortsError, setShortsError] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // Load YouTube IFrame API
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        setApiReady(true);
-      };
-    } else {
+    if (window.YT?.Player) {
       setApiReady(true);
+      return undefined;
     }
+
+    const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+    const script = existingScript || document.createElement("script");
+    const previousCallback = window.onYouTubeIframeAPIReady;
+    let disposed = false;
+    const handleReady = () => {
+      if (!disposed) setApiReady(Boolean(window.YT?.Player));
+      if (typeof previousCallback === "function") previousCallback();
+    };
+    window.onYouTubeIframeAPIReady = handleReady;
+    if (!existingScript) {
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.onerror = () => {
+        if (!disposed) setApiError("Unable to load the YouTube player. Check your connection and retry.");
+      };
+      document.head.appendChild(script);
+    } else {
+      script.addEventListener("error", () => {
+        if (!disposed) setApiError("Unable to load the YouTube player. Check your connection and retry.");
+      }, { once: true });
+    }
+
+    return () => {
+      disposed = true;
+      if (window.onYouTubeIframeAPIReady === handleReady) {
+        window.onYouTubeIframeAPIReady = previousCallback || null;
+      }
+    };
   }, []);
 
-  const getShorts = useCallback(async () => {
+  const getShorts = useCallback(async (signal) => {
     try {
-      const res = await fetch(YOUTUBE_SHORTS_API);
-      const data = await res.json();
-      setShorts(data.items);
-      if (data.items.length > 0) {
-        setActiveVideoId(data.items[0].id.videoId);
+      setShortsError("");
+      const data = await fetchYouTubeJson(YOUTUBE_SHORTS_API, { signal, ttlMs: 300_000 });
+      const items = (data.items || []).filter((item) => item?.id?.videoId);
+      if (!signal?.aborted) {
+        setShorts(items);
+        setActiveVideoId(items[0]?.id?.videoId || null);
       }
     } catch (err) {
-      console.error("Failed to fetch shorts", err);
+      if (err.name !== "AbortError") {
+        setShortsError(err.message || "Failed to fetch Shorts.");
+        console.error("Failed to fetch shorts:", err);
+      }
     }
   }, []);
 
   useEffect(() => {
     dispatch(closeMenu());
-    getShorts();
+    const controller = new AbortController();
+    getShorts(controller.signal);
+    return () => controller.abort();
   }, [dispatch, getShorts]);
 
   useEffect(() => {
@@ -217,12 +251,10 @@ const ShortsPage = () => {
     };
 
     const callback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const videoId = entry.target.getAttribute("data-video-id");
-          setActiveVideoId(videoId);
-        }
-      });
+      const mostVisible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (mostVisible) setActiveVideoId(mostVisible.target.getAttribute("data-video-id"));
     };
 
     const observer = new IntersectionObserver(callback, options);
@@ -231,21 +263,23 @@ const ShortsPage = () => {
     targets?.forEach((target) => observer.observe(target));
 
     return () => {
-      targets?.forEach((target) => observer.unobserve(target));
+      observer.disconnect();
     };
-  }, [shorts]);
+  }, [shorts, apiReady]);
 
   const toggleMute = () => {
     setIsGlobalMuted(!isGlobalMuted);
   };
 
-  if (!apiReady) return null;
+  if (apiError) return <p className="p-8 text-center text-red-500" role="alert">{apiError}</p>;
+  if (!apiReady) return <p className="p-8 text-center text-gray-500" role="status">Loading Shorts player…</p>;
 
   return (
     <div
       ref={containerRef}
       className="h-screen md:h-[calc(100vh-72px)] flex-grow overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-gray-50 dark:bg-[#0f0f0f] relative"
     >
+      {shortsError && <p className="absolute left-4 right-4 top-16 z-40 rounded-lg bg-red-950/80 p-3 text-sm text-white" role="alert">{shortsError}</p>}
       {/* Mobile Back Button */}
       <button
         onClick={() => navigate('/')}
@@ -261,6 +295,7 @@ const ShortsPage = () => {
           isActive={activeVideoId === short.id.videoId}
           isGlobalMuted={isGlobalMuted}
           onToggleMute={toggleMute}
+          onOpenComments={(id) => navigate(`/watch?v=${encodeURIComponent(id)}&comments=1`)}
         />
       ))}
     </div>

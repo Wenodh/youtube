@@ -1,70 +1,38 @@
-# Getting Started with Create React App
+# YouTube Clone
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React 18 + Redux Toolkit YouTube browsing application using the YouTube Data API v3.
 
-## Available Scripts
+## Local setup
 
-In the project directory, you can run:
+- Node.js 18+
+- A Google Cloud project with YouTube Data API v3 enabled
 
-### `npm start`
+```bash
+npm ci
+cp .env.example .env.local
+# Set REACT_APP_GOOGLE_API_KEY and (optionally) REACT_APP_GOOGLE_CLIENT_ID in .env.local
+npm start
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Run checks:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+npm test -- --watchAll=false
+npm run build
+```
 
-### `npm test`
+## API key security and quota
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+A `REACT_APP_*` value is compiled into browser JavaScript. The YouTube API key is therefore public; do not treat it as a secret. In Google Cloud Console, restrict the key to HTTP referrers for localhost and your exact deployed domains, and restrict it to YouTube Data API v3. Rotate any key that has been committed publicly.
 
-### `npm run build`
+Successful Data API GET responses are cached in memory for short periods to reduce repeated calls during navigation. This does not replace quota monitoring or server-side enforcement. YouTube Search API calls can consume considerably more quota than video/channel lookups.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Authentication limitations
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Google Identity Services currently supplies a client-side profile preview only. This project does not verify credentials on a backend, create a server session, or obtain YouTube OAuth scopes. The profile display is not proof of a server-authenticated user. In-app likes/dislikes are local preferences; they do not modify a YouTube account. Subscribe and live-chat actions are not connected. The Shorts feed currently uses a short-duration search query; the public Data API does not provide a dedicated Shorts-only feed filter, so results are not guaranteed to be Shorts. The Live Chat panel now explains this rather than generating fake messages.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Real YouTube account actions require a backend OAuth authorization-code flow with state/PKCE, server-side token validation, the minimum required YouTube scopes, and secure server-side refresh-token storage. Never put OAuth client secrets or refresh tokens in React environment variables.
 
-### `npm run eject`
+## CI
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+GitHub Actions runs Jest and a production build for pull requests and pushes to `master`.
